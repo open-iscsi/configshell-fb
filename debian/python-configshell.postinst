@@ -1,0 +1,17 @@
+#!/bin/sh
+for lib in lib lib64; do
+	for python in python2.6; do
+		if [ -e /usr/${lib}/${python} ]; then
+			if [ ! -e /usr/${lib}/${python}/configshell ]; then
+				mkdir /usr/${lib}/${python}/configshell
+				for source in /usr/share/python-support/configshell/configshell/*.py; do
+					ln -sf ${source} /usr/${lib}/${python}/configshell/
+				done
+				python_path=$(which ${python} 2>/dev/null)
+				if [ ! -z $python_path ]; then
+					${python} -c "import compileall; compileall.compile_dir('/usr/${lib}/${python}/configshell', force=1)"
+				fi
+			fi
+		fi
+	done
+done

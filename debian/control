@@ -1,0 +1,24 @@
+Source: configshell
+Section: python
+Priority: optional
+Maintainer: Jerome Martin <jxm@risingtidesystems.com>
+Build-Depends: debhelper(>= 7.0.1), python2.6, python-epydoc, python-simpleparse
+Standards-Version: 3.8.1
+
+Package: python-configshell
+Architecture: all
+Depends: python (>= 2.6)|python2.6, python-epydoc, python-simpleparse, python-urwid
+Suggests: configshell-doc
+Description: Framework to create CLI interfaces.
+ .
+ This package contains the configshell library.  
+
+Package: configshell-doc
+Section: doc
+Architecture: all
+Recommends: iceweasel | www-browser
+Description: official API documentation for the configshell library
+ .
+ This package contains the API reference and usage information for configshell,
+ a framework to create CLI interfaces.
+

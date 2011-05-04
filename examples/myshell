@@ -1,0 +1,181 @@
+#!/usr/bin/python
+'''
+This file is part of ConfigShell Community Edition.
+Copyright (c) 2011 by RisingTide Systems LLC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, version 3 (AGPLv3).
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
+
+import os
+import configshell
+
+class MySystemRoot(configshell.node.ConfigNode):
+    def __init__(self):
+        configshell.node.ConfigNode.__init__(self)
+        for child in Interpreters(), System():
+            self.add_child(child)
+        target = self
+        for level in range(1,20):
+            child = configshell.node.ConfigNode()
+            target.add_child(child, "level%d" % level)
+            target = child
+
+class Interpreters(configshell.node.ConfigNode):
+    def __init__(self):
+        configshell.node.ConfigNode.__init__(self)
+        self.name = 'interpreters'
+
+    def ui_command_python(self):
+        '''
+        python  - an interpreted object-oriented programming language
+        '''
+        os.system("python")
+
+    def ui_command_ipython(self):
+        '''
+        ipython - An Enhanced Interactive Python
+        '''
+        os.system("ipython")
+
+    def ui_command_bash(self):
+        '''
+        bash - GNU Bourne-Again SHell
+        '''
+        os.system("bash")
+
+class System(configshell.node.ConfigNode):
+    def __init__(self):
+        configshell.node.ConfigNode.__init__(self)
+        self.name = 'system'
+        for child in Processes(), Storage():
+            self.add_child(child)
+
+    def ui_command_uname(self):
+        '''
+        Displays the system uname information.
+        '''
+        os.system("uname -a")
+
+    def ui_command_lsmod(self):
+        '''
+        lsmod - program to show the status of modules in the Linux Kernel
+        '''
+        os.system("lsmod")
+
+    def ui_command_lspci(self):
+        '''
+        lspci - list all PCI devices
+        '''
+        os.system("lspci")
+
+    def ui_command_lsusb(self):
+        '''
+        lsusb - list USB devices
+        '''
+        os.system("lsusb")
+
+    def ui_command_lscpu(self):
+        '''
+        lscpu - CPU architecture information helper
+        '''
+        os.system("lscpu")
+
+    def ui_command_uptime(self):
+        '''
+        uptime - Tell how long the system has been running.
+        '''
+        os.system("uptime")
+
+
+class Storage(configshell.node.ConfigNode):
+    def __init__(self):
+        configshell.node.ConfigNode.__init__(self)
+        self.name = 'storage'
+
+    def ui_command_lsscsi(self):
+        '''
+        lsscsi - list SCSI devices (or hosts) and their attributes
+        '''
+        os.system("lsscsi")
+
+    def ui_command_du(self):
+        '''
+        du - estimate file space usage
+        '''
+        os.system("du -hs /")
+
+    def ui_command_df(self):
+        '''
+        df - report file system disk space usage
+        '''
+        os.system("df -h")
+
+    def ui_command_uuidgen(self):
+        '''
+        uuidgen - command-line utility to create a new UUID value.
+        '''
+        os.system("uuidgen")
+
+class Processes(configshell.node.ConfigNode):
+    def __init__(self):
+        configshell.node.ConfigNode.__init__(self)
+        self.name = 'processes'
+
+    def ui_command_top(self):
+        '''
+        top - display Linux tasks
+        '''
+        os.system("top")
+
+    def ui_command_ps(self):
+        '''
+        ps - report a snapshot of the current processes.
+        '''
+        os.system("ps aux")
+
+    def ui_command_pstree(self):
+        '''
+        pstree - display a tree of processes
+        '''
+        os.system("pstree")
+
+class Users(configshell.node.ConfigNode):
+    def __init__(self):
+        configshell.node.ConfigNode.__init__(self)
+        self.name = 'users'
+
+    def ui_command_who(self):
+        '''
+        who - show who is logged on
+        '''
+        os.system("who")
+
+    def ui_command_whoami(self):
+        '''
+        whoami - print effective userid
+        '''
+        os.system("whoami")
+
+    def ui_command_users(self):
+        '''
+        users  -  print the user names of users currently logged in.
+        '''
+        os.system("users")
+
+def main():
+    root_node = MySystemRoot()
+    shell = configshell.shell.ConfigShell(root_node, '~/.myshell')
+    shell.run_interactive()
+
+if __name__ == "__main__":
+    main()
