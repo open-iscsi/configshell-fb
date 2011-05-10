@@ -19,6 +19,9 @@ for building simple but nice CLI-based applications.
 For more information, see the configshell API reference, available in both html
 and pdf formats as a separate package.
 
+The latest version of this program might be obtained at:
+http://www.risingtidesystems.com/git/
+
 To run the example shell from this directory use:
 PYTHONPATH=. ./examples/myshell
 
