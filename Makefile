@@ -17,26 +17,27 @@ NAME = configshell
 LIB = /usr/share
 DOC = ${LIB}/doc/
 SETUP = ./setup.py
-CLEAN = ./bin/clean
 GENDOC = ./bin/gendoc
+RPMVERSION = $$(grep Version: redhat/python-configshell.spec | awk '{print $$2}')
 
 all: usage
 usage:
 	@echo "Usage:"
-	@echo "  make install - Install configshell"
-	@echo "  make installdocs - Install the documentation"
+	@echo "  make deb         - Builds debian packages."
+	@echo "  make rpm         - Builds redhat packages."
+	@echo "  make clean       - Cleanup the local repository"
+	@echo "  make cleanall    - Cleanup the local repository and packages"
 	@echo "Developer targets:"
-	@echo "  make packages - Generate the Debian and RPM packages"
-	@echo "  make doc      - Generate the documentation"
-	@echo "  make clean    - Cleanup the local repository"
-	@echo "  make sdist    - Build the source tarball"
-	@echo "  make bdist    - Build the installable tarball"
+	@echo "  make doc         - Generate the documentation"
+	@echo "  make sdist       - Build the source tarball"
+	@echo "  make bdist       - Build the installable tarball"
+	@echo "  make install     - Install configshell"
+	@echo "  make installdocs - Install the documentation"
 
 install:
 	${SETUP} install
 
 doc:
-	./bin/gen_changelog
 	${GENDOC}
 
 installdocs: doc
@@ -46,10 +47,27 @@ installdocs: doc
 	cp -r doc/* ${DOC}/${NAME}/
 
 clean:
-	${CLEAN}
+	rm -fv configshell/*.pyc configshell/*.html
+	rm -frv doc doc/*.pdf doc/html doc/pdf doc/*.html
+	rm -frv configshell.egg-info MANIFEST build
+	rm -frv pdf html
+	rm -frv debian/tmp
+	rm -fv build-stamp
+	rm -fv dpkg-buildpackage.log dpkg-buildpackage.version
+	rm -frv *.rpm
+	rm -fv debian/files debian/*.log debian/*.substvars
+	rm -frv debian/configshell-doc/ debian/python2.5-configshell/
+	rm -frv debian/python2.6-configshell/ debian/python-configshell/
+	rm -frv results
+	rm -fv redhat/*.spec *.spec
 	./bin/gen_changelog_cleanup
+	echo "Finished cleanup."
 
-packages: clean doc
+cleanall: clean
+	rm -frv dist
+
+deb: doc
+	./bin/gen_changelog
 	dpkg-buildpackage -rfakeroot | tee dpkg-buildpackage.log
 	./bin/gen_changelog_cleanup
 	grep "source version" dpkg-buildpackage.log | awk '{print $$4}' > dpkg-buildpackage.version
@@ -58,24 +76,18 @@ packages: clean doc
 	mv ../${NAME}_$$(cat dpkg-buildpackage.version)_*.changes dist
 	mv ../${NAME}_$$(cat dpkg-buildpackage.version).tar.gz dist
 	mv ../*${NAME}*$$(cat dpkg-buildpackage.version)*.deb dist
-	@test -e build || mkdir build
-	cd build; alien --scripts -k -g -r ../dist/configshell-doc_$$(cat ../dpkg-buildpackage.version)_all.deb
-	cd build/configshell-doc-*; mkdir usr/share/doc/packages
-	cd build/configshell-doc-*; mv usr/share/doc/configshell-doc usr/share/doc/packages/
-	cd build/configshell-doc-*; perl -pi -e "s,/usr/share/doc/configshell-doc,/usr/share/doc/packages/configshell-doc,g" *.spec
-	cd build/configshell-doc-*; perl -pi -e "s,%%{ARCH},noarch,g" *.spec
-	cd build/configshell-doc-*; perl -pi -e "s,%post,%posttrans,g" *.spec
-	cd build/configshell-doc-*; rpmbuild --buildroot $$PWD -bb *.spec
-	cd build; alien --scripts -k -g -r ../dist/python-configshell_$$(cat ../dpkg-buildpackage.version)_all.deb; cd ..
-	cd build/python-configshell-*; mkdir usr/share/doc/packages
-	cd build/python-configshell-*; mv usr/share/doc/python-configshell usr/share/doc/packages/
-	cd build/python-configshell-*; perl -pi -e "s,/usr/share/doc/python-configshell,/usr/share/doc/packages/python-configshell,g" *.spec
-	cd build/python-configshell-*; perl -pi -e 's/Group:/Requires: python >= 2.5\nGroup:/g' *.spec
-	cd build/python-configshell-*; perl -pi -e "s,%%{ARCH},noarch,g" *.spec
-	cd build/python-configshell-*; perl -pi -e "s,%post,%posttrans,g" *.spec
-	cd build/python-configshell-*; rpmbuild --buildroot $$PWD -bb *.spec
-	mv build/*.rpm dist
-	rm dpkg-buildpackage.log dpkg-buildpackage.version
+	./bin/gen_changelog_cleanup
+
+rpm:
+	./bin/gen_changelog
+	echo Building RPM version ${RPMVERSION}
+	mkdir -p ~/rpmbuild/SOURCES/
+	git archive master --prefix configshell-${RPMVERSION}/ | gzip > ~/rpmbuild/SOURCES/configshell-${RPMVERSION}.tar.gz
+	rpmbuild -ba redhat/*.spec
+	@test -e dist || mkdir dist
+	mv ~/rpmbuild/SRPMS/python-configshell-${RPMVERSION}*.src.rpm dist/
+	mv ~/rpmbuild/RPMS/noarch/python-configshell-${RPMVERSION}*.rpm dist/
+	./bin/gen_changelog_cleanup
 
 sdist: clean doc
 	${SETUP} sdist

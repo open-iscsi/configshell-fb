@@ -1,0 +1,38 @@
+%define oname configshell
+
+Name:           python-configshell
+License:        AGPLv3
+Group:          System Environment/Libraries
+Summary:        A framework to implement simple but nice CLIs.
+Version:        VERSION
+Release:        1%{?dist}
+URL:            http://www.risingtidesystems.com/git/
+Source:         %{oname}-%{version}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-rpmroot
+BuildArch:      noarch
+BuildRequires:  python-devel, epydoc, python-simpleparse
+Requires:       python-simpleparse, python-urwid >= 0.9.9
+Vendor:         RisingTide Systems
+
+%description
+A framework to implement simple but nice command-line interfaces.
+
+%prep
+%setup -q -n %{oname}-%{version}
+
+%build
+%{__python} setup.py build
+
+%install
+rm -rf %{buildroot}
+%{__python} setup.py install --skip-build --root %{buildroot}
+
+%clean
+rm -rf %{buildroot}
+
+%files
+%defattr(-,root,root,-)
+%{python_sitelib}
+%doc examples COPYING README
+
+%changelog
