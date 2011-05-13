@@ -387,6 +387,33 @@ class ConfigNode(object):
         '''
         return self.prefs[parameter]
 
+    def ui_eval_param(self, ui_value, type_helper, default):
+        '''
+        Evaluates a user-provided parameter value using a given type helper.
+        If the parameter value is None, the default will be returned. If the
+        ui_value does not check out with the type helper, and execution error
+        will be raised.
+
+        @param ui_value: The user provided parameter value.
+        @type ui_value: str
+        @param type_helper: The ui_type_XXX helper method to be used
+        @type type_helper: method
+        @param default: The default value to return.
+        @type default: any
+        @return: The evaluated parameter value.
+        @rtype: depends on type_helper
+        @raise ExecutionError: If evaluation fails.
+        '''
+        if ui_value is None:
+            return default
+        else:
+            try:
+                value = type_helper(ui_value)
+            except ValueError, msg:
+                raise ExecutionError(msg)
+            else:
+                return value
+
     # User interface commands
 
     def ui_command_set(self, group=None, **parameter):
