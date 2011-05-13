@@ -51,11 +51,11 @@ class ConfigNode(object):
         self._configuration_groups = {}
         self._configuration_groups['global'] = \
                 {'tree_round_nodes': \
-                 [self.ui_type_onoff,
+                 [self.ui_type_bool,
                   'Tree node display style.'],
 
                  'tree_status_mode': \
-                 [self.ui_type_onoff,
+                 [self.ui_type_bool,
                   'Whether or not to display status in tree.'],
 
                  'tree_max_depth': \
@@ -63,11 +63,11 @@ class ConfigNode(object):
                   'Maximum depth of displayed node tree.'],
 
                  'tree_show_root': \
-                 [self.ui_type_onoff,
+                 [self.ui_type_bool,
                   'Whether or not to disply tree root.'],
 
                  'color_mode': \
-                 [self.ui_type_onoff,
+                 [self.ui_type_bool,
                   'Console color display mode.'],
 
                  'loglevel_console': \
@@ -103,8 +103,8 @@ class ConfigNode(object):
                   'Color to use for keyword completions.'],
 
                  'completions_in_columns': \
-                 [self.ui_type_onoff,
-                  'If B{on}, completions are displayed in columns, ' \
+                 [self.ui_type_bool,
+                  'If B{true}, completions are displayed in columns, ' \
                   + 'else in lines.'],
 
                  'prompt_length': \
@@ -197,9 +197,10 @@ class ConfigNode(object):
             else:
                 return value
 
-    def ui_type_onoff(self, value=None, enum=False, reverse=False):
+    def ui_type_bool(self, value=None, enum=False, reverse=False):
         '''
-        UI parameter type helper for on/off parameter type.
+        UI parameter type helper for boolean parameter type. Valid values are
+        either 'true' or 'false'.
         @param value: Value to check against the type.
         @type value: anything
         @param enum: Has a meaning only if value is omitted. If set, returns
@@ -215,19 +216,19 @@ class ConfigNode(object):
         '''
         if reverse:
             if value:
-                return 'on'
+                return 'true'
             else:
-                return 'off'
-        type_enum = ['on', 'off']
+                return 'false'
+        type_enum = ['true', 'false']
         syntax = '|'.join(type_enum)
         if value is None:
             if enum:
                 return type_enum
             else:
                 return syntax
-        elif value == 'on':
+        elif value == 'true':
             return True
-        elif value == 'off':
+        elif value == 'false':
             return False
         else:
             raise ValueError("Syntax error, '%s' is not %s." \
@@ -398,7 +399,7 @@ class ConfigNode(object):
         with just a group name to list all available parameters within that
         group.
 
-        Example: B{set global color_mode=on loglevel_console=info}
+        Example: B{set global color_mode=true loglevel_console=info}
 
         SEE ALSO
         ========
