@@ -712,10 +712,10 @@ class ConfigNode(object):
                 summary += self.con.render_text(description, 'red',
                                                 styles=['bold'])
         else:
-                summary += description
+            summary += description
 
         if do_list:
-                summary += ']'
+            summary += ']'
         else:
             summary += self.con.render_text(']', styles=['bold'])
 
