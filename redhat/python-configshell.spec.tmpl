@@ -17,6 +17,14 @@ Vendor:         RisingTide Systems
 %description
 A framework to implement simple but nice command-line interfaces.
 
+%package doc
+Summary:       PDF and HTML API reference for python-configshell.
+Group:         Documentation
+BuildRequires: epydoc
+
+%description doc
+PDF and HTML API reference for python-configshell.
+
 %prep
 %setup -q -n %{oname}-%{version}
 
@@ -26,6 +34,8 @@ A framework to implement simple but nice command-line interfaces.
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install --skip-build --root %{buildroot}
+mkdir -p %{buildroot}/usr/share/doc/%{oname}-%{version}
+cp -r doc/* %{buildroot}/usr/share/doc/%{oname}-%{version}/
 
 %clean
 rm -rf %{buildroot}
@@ -34,5 +44,9 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{python_sitelib}
 %doc examples COPYING README
+
+%files doc
+%defattr(-,root,root,-)
+/usr/share/doc/%{oname}-%{version}
 
 %changelog
