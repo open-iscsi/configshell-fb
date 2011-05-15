@@ -34,7 +34,7 @@ PDF and HTML API reference for python-configshell.
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install --skip-build --root %{buildroot}
-mkdir -p %{buildroot}/usr/share/doc/%{oname}-%{version}
+mkdir -p %{buildroot}/usr/share/doc/python-configshell-doc-%{version}
 cp -r doc/* %{buildroot}/usr/share/doc/python-configshell-doc-%{version}/
 
 %clean
