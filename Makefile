@@ -62,7 +62,7 @@ clean:
 	rm -fv redhat/*.spec *.spec
 	rm -frv configshell-*
 	./bin/gen_changelog_cleanup
-	echo "Finished cleanup."
+	@echo "Finished cleanup."
 
 cleanall: clean
 	rm -frv dist
@@ -81,7 +81,7 @@ deb: doc
 
 rpm: doc
 	./bin/gen_changelog
-	echo Building RPM version ${RPMVERSION}
+	@echo Building RPM version ${RPMVERSION}
 	mkdir -p ~/rpmbuild/SOURCES/
 	mkdir -p build
 	git archive master --prefix configshell/ > build/configshell.tar
@@ -90,7 +90,7 @@ rpm: doc
 	cp -r doc build/configshell/
 	mv build/configshell configshell-${RPMVERSION}
 	tar zcf ~/rpmbuild/SOURCES/configshell-${RPMVERSION}.tar.gz configshell-${RPMVERSION}
-	rm -frv configshell-${RPMVERSION}
+	rm -fr configshell-${RPMVERSION}
 	rpmbuild -ba redhat/*.spec
 	@test -e dist || mkdir dist
 	mv ~/rpmbuild/SRPMS/python-configshell-${RPMVERSION}*.src.rpm dist/
