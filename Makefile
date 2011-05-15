@@ -78,6 +78,7 @@ deb: doc
 	mv ../${NAME}_$$(cat dpkg-buildpackage.version).tar.gz dist
 	mv ../*${NAME}*$$(cat dpkg-buildpackage.version)*.deb dist
 	./bin/gen_changelog_cleanup
+
 rpm: doc
 	./bin/gen_changelog
 	echo Building RPM version ${RPMVERSION}
@@ -89,6 +90,7 @@ rpm: doc
 	cp -r doc build/configshell/
 	mv build/configshell configshell-${RPMVERSION}
 	tar zcf ~/rpmbuild/SOURCES/configshell-${RPMVERSION}.tar.gz configshell-${RPMVERSION}
+	rm -frv configshell-${RPMVERSION}
 	rpmbuild -ba redhat/*.spec
 	@test -e dist || mkdir dist
 	mv ~/rpmbuild/SRPMS/python-configshell-${RPMVERSION}*.src.rpm dist/
