@@ -60,7 +60,7 @@ clean:
 	rm -frv debian/python2.6-configshell/ debian/python-configshell/
 	rm -frv results
 	rm -fv redhat/*.spec *.spec
-	rm -frv rtslib-*
+	rm -frv configshell-*
 	./bin/gen_changelog_cleanup
 	echo "Finished cleanup."
 
