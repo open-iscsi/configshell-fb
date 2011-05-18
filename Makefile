@@ -59,7 +59,7 @@ clean:
 	rm -frv debian/configshell-doc/ debian/python2.5-configshell/
 	rm -frv debian/python2.6-configshell/ debian/python-configshell/
 	rm -frv results
-	rm -fv redhat/*.spec *.spec
+	rm -fv redhat/*.spec *.spec redhat/sed* sed*
 	rm -frv configshell-*
 	./bin/gen_changelog_cleanup
 	@echo "Finished cleanup."
