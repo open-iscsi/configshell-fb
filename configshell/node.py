@@ -762,6 +762,7 @@ class ConfigNode(object):
         else:
             node_char = '+'
         line += node_char.ljust(node_length, '-')
+        line += ' '
         margin_len = len(line)
 
         pad = (self.con.get_width() - 1
