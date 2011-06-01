@@ -39,6 +39,31 @@ class ConfigNode(object):
     ui_setgroup_method_prefix = "ui_setgroup_"
     ui_getgroup_method_prefix = "ui_getgroup_"
 
+    help_intro = '''
+                 GENERALITIES
+                 ============
+                 This is an interactive shell in which you can create, delete
+                 and configure configuration objects.
+
+                 The available commands depend on the work path you are in the
+                 objects tree. The prompt that starts each command line
+                 indicates your current position, or you can run the I{pwd}
+                 command to that effect. Navigating the tree is done using the
+                 I{cd} command. Please try I{help cd} for navigation tips.
+
+                 COMMAND SYNTAX
+                 ==============
+                 Commands are built using the following syntax:
+
+                 [I{PATH}] I{COMMAND_NAME} [I{OPTIONS}]
+
+                 The I{PATH} indicates the object to run the command on. If
+                 ommited, the command will be run from your working path.
+
+                 The I{OPTIONS} depend on the command. Please use I{help
+                 COMMAND} to get more information.
+                 '''
+
     def __init__(self):
         self._name = 'config node'
         self._children = set([])
@@ -1050,18 +1075,24 @@ class ConfigNode(object):
                                 if nav.startswith(text)])
             return completions
 
-    def ui_command_man(self, topic=None):
+    def ui_command_help(self, topic=None):
         '''
         Displays the manual page for a topic, or list available topics.
         '''
         commands = self.list_commands()
         if topic is None:
-            msg = self.con.epy_write('''
-                                 COMMAND MANUALS
-                                 ===============
-                                 %s
+            msg = self.con.dedent(self.help_intro)
+            msg += self.con.dedent('''
 
-                                 ''' % ' '.join(commands))
+                                   AVAILABLE COMMANDS
+                                   ==================
+                                   The following commands are available in the
+                                   work path:
+
+                                   ''')
+            for command in commands:
+                msg += "  - %s\n" % self.get_command_syntax(command)[0]
+            self.con.epy_write(msg)
         elif topic in commands:
             syntax, comments, defaults = self.get_command_syntax(topic)
             msg = self.con.dedent('''
@@ -1089,9 +1120,9 @@ class ConfigNode(object):
         else:
             self.log.error("Cannot find help topic %s." % topic)
 
-    def ui_complete_man(self, parameters, text, current_param):
+    def ui_complete_help(self, parameters, text, current_param):
         '''
-        Parameter auto-completion method for user command man.
+        Parameter auto-completion method for user command help.
         @param parameters: Parameters on the command line.
         @type parameters: dict
         @param text: Current text of parameter being typed by the user.
@@ -1195,7 +1226,7 @@ class ConfigNode(object):
                     bookmarks += "%s\n%s\n%s\n\n" % (bookmark, underline, path)
             self.con.epy_write(bookmarks)
         else:
-            self.log.error("Syntax error, see 'man bookmarks'.")
+            self.log.error("Syntax error, see 'help bookmarks'.")
 
     def ui_complete_bookmarks(self, parameters, text, current_param):
         '''
@@ -1347,7 +1378,7 @@ class ConfigNode(object):
                or "takes exactly" in msg \
                or "takes at least" in msg \
                or "unexpected keyword" in msg:
-                self.log.error("Wrong parameters for %s, see 'man %s'."\
+                self.log.error("Wrong parameters for %s, see 'help %s'."\
                               % (command, command))
             else:
                 raise
