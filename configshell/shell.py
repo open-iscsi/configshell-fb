@@ -796,8 +796,8 @@ class ConfigShell(object):
                 readline.set_completer(self._complete)
                 cmdline = raw_input(self._get_prompt()).strip()
             except EOFError:
-                self.con.raw_write('\n')
-                cmdline = "cd .."
+                self.con.raw_write('exit\n')
+                cmdline = "exit"
             self.run_cmdline(cmdline)
             if self._save_history:
                 try:
