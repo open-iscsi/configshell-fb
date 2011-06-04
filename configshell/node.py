@@ -77,64 +77,65 @@ class ConfigNode(object):
         self._configuration_groups['global'] = \
                 {'tree_round_nodes': \
                  [self.ui_type_bool,
-                  'Tree node display style.'],
+                  'Tree node display style.', True],
 
                  'tree_status_mode': \
                  [self.ui_type_bool,
-                  'Whether or not to display status in tree.'],
+                  'Whether or not to display status in tree.', True],
 
                  'tree_max_depth': \
                  [self.ui_type_number,
-                  'Maximum depth of displayed node tree.'],
+                  'Maximum depth of displayed node tree.', True],
 
                  'tree_show_root': \
                  [self.ui_type_bool,
-                  'Whether or not to disply tree root.'],
+                  'Whether or not to disply tree root.', True],
 
                  'color_mode': \
                  [self.ui_type_bool,
-                  'Console color display mode.'],
+                  'Console color display mode.', True],
 
                  'loglevel_console': \
                  [self.ui_type_loglevel,
-                  'Log level for messages going to the console.'],
+                  'Log level for messages going to the console.', True],
 
                  'loglevel_file': \
                  [self.ui_type_loglevel,
-                  'Log level for messages going to the log file.'],
+                  'Log level for messages going to the log file.', True],
 
                  'logfile': \
                  [self.ui_type_string,
-                  'Logfile to use.'],
+                  'Logfile to use.', True],
 
                  'color_default': \
                  [self.ui_type_colordefault,
-                  'Default text display color.'],
+                  'Default text display color.', True],
 
                  'color_path': \
                  [self.ui_type_color,
-                  'Color to use for path completions'],
+                  'Color to use for path completions', True],
 
                  'color_command': \
                  [self.ui_type_color,
-                  'Color to use for command completions.'],
+                  'Color to use for command completions.', True],
 
                  'color_parameter': \
                  [self.ui_type_color,
-                  'Color to use for parameter completions.'],
+                  'Color to use for parameter completions.', True],
 
                  'color_keyword': \
                  [self.ui_type_color,
-                  'Color to use for keyword completions.'],
+                  'Color to use for keyword completions.', True],
 
                  'completions_in_columns': \
                  [self.ui_type_bool,
                   'If B{true}, completions are displayed in columns, ' \
-                  + 'else in lines.'],
+                  + 'else in lines.', True],
 
                  'prompt_length': \
                  [self.ui_type_number,
-                  'Maximum length of the shell prompt path, 0 means infinite.']
+                  'Maximum length of the shell prompt path, 0 means infinite.',
+                  True]
                 }
 
         if self.prefs['bookmarks'] is None:
@@ -465,16 +466,18 @@ class ConfigNode(object):
                                ''' % ' '.join(self._configuration_groups))
         elif not parameter:
             if group in self._configuration_groups:
-                section = "%s PARAMETERS" % group.upper()
+                section = "%s CONFIG GROUP" % group.upper()
                 underline1 = ''.ljust(len(section), '=')
                 parameters = ''
                 for parameter, param_def \
-                        in self._configuration_groups[group].iteritems():
-                    (type_helper, description) = param_def
-                    parameter += '=I{' + type_helper() + '}'
-                    underline2 = ''.ljust(len(parameter), '-')
-                    parameters += '%s\n%s\n%s\n\n' \
-                            % (parameter, underline2, description)
+                        in iter(sorted(
+                            self._configuration_groups[group].iteritems())):
+                    (type_helper, description, writable) = param_def
+                    if writable:
+                        parameter += '=I{' + type_helper() + '}'
+                        underline2 = ''.ljust(len(parameter), '-')
+                        parameters += '%s\n%s\n%s\n\n' \
+                                % (parameter, underline2, description)
 
                 self.con.epy_write('''%s\n%s\n%s\n''' \
                                    % (section, underline1, parameters))
@@ -484,18 +487,23 @@ class ConfigNode(object):
             for param, value in parameter.iteritems():
                 if param in self._configuration_groups[group]:
                     type_helper = self._configuration_groups[group][param][0]
-                    try:
-                        value = type_helper(value)
-                    except ValueError, msg:
-                        self.log.error("Not setting %s! %s" % (param, msg))
+                    writable = self._configuration_groups[group][param][2]
+                    if writable:
+                        try:
+                            value = type_helper(value)
+                        except ValueError, msg:
+                            self.log.error("Not setting %s! %s" % (param, msg))
+                        else:
+                            group_setter = self.get_group_setter(group)
+                            group_setter(param, value)
+                            group_getter = self.get_group_getter(group)
+                            value = group_getter(param)
+                            value = type_helper(value, reverse=True)
+                            self.con.display(
+                                "Parameter %s has been set to '%s'." \
+                                % (param, value))
                     else:
-                        group_setter = self.get_group_setter(group)
-                        group_setter(param, value)
-                        group_getter = self.get_group_getter(group)
-                        value = group_getter(param)
-                        value = type_helper(value, reverse=True)
-                        self.con.display("Parameter %s has been set to '%s'." \
-                                     % (param, value))
+                        self.log.error("Parameter '%s' is read-only." % param)
                 else:
                     self.log.error(
                         "There is no parameter named '%s' in group '%s'." \
@@ -526,7 +534,9 @@ class ConfigNode(object):
         elif 'group' in parameters:
             group = parameters['group']
             if group in self._configuration_groups:
-                group_params = self._configuration_groups[group]
+                group_params = [param for param in
+                                self._configuration_groups[group]
+                                if self._configuration_groups[group][param][2]]
                 if current_param in group_params:
                     type_method = group_params[current_param][0]
                     type_enum = type_method(enum=True)
@@ -571,7 +581,7 @@ class ConfigNode(object):
                                ''' % ' '.join(self._configuration_groups))
         elif not parameter:
             if group in self._configuration_groups:
-                section = "%s PARAMETERS" % group.upper()
+                section = "%s CONFIG GROUP" % group.upper()
                 underline1 = ''.ljust(len(section), '=')
                 parameters = ''
                 params = self._configuration_groups[group].items()
@@ -583,7 +593,10 @@ class ConfigNode(object):
                     group_params = self._configuration_groups[group]
                     type_method = group_params[parameter][0]
                     value = type_method(value, reverse=True)
-                    parameter = parameter + '=' + value
+                    if param_def[2]:
+                        parameter = parameter + '=' + value
+                    else:
+                        parameter = parameter + '=' + value + " [ro]"
                     underline2 = ''.ljust(len(parameter), '-')
                     parameters += '%s\n%s\n%s\n\n' \
                             % (parameter, underline2, description)
@@ -600,8 +613,13 @@ class ConfigNode(object):
                     value = group_getter(param)
                     group_params = self._configuration_groups[group]
                     type_method = group_params[param][0]
+                    writable = group_params[param][2]
                     value = type_method(value, reverse=True)
-                    self.con.display("%s=%s" % (param, value))
+                    if writable:
+                        writable = ""
+                    else:
+                        writable = "[ro]"
+                    self.con.display("%s=%s %s" % (param, value, writable))
                 else:
                     self.log.error(
                         "There is no parameter named '%s' in group '%s'." \
