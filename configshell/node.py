@@ -34,6 +34,7 @@ class ConfigNode(object):
     _path_current = '.'
     _path_previous = '..'
 
+    ui_type_method_prefix = "ui_type_"
     ui_command_method_prefix = "ui_command_"
     ui_complete_method_prefix = "ui_complete_"
     ui_setgroup_method_prefix = "ui_setgroup_"
@@ -76,64 +77,64 @@ class ConfigNode(object):
         self._configuration_groups = {}
         self._configuration_groups['global'] = \
                 {'tree_round_nodes': \
-                 [self.ui_type_bool,
+                 ['bool',
                   'Tree node display style.', True],
 
                  'tree_status_mode': \
-                 [self.ui_type_bool,
+                 ['bool',
                   'Whether or not to display status in tree.', True],
 
                  'tree_max_depth': \
-                 [self.ui_type_number,
+                 ['number',
                   'Maximum depth of displayed node tree.', True],
 
                  'tree_show_root': \
-                 [self.ui_type_bool,
+                 ['bool',
                   'Whether or not to disply tree root.', True],
 
                  'color_mode': \
-                 [self.ui_type_bool,
+                 ['bool',
                   'Console color display mode.', True],
 
                  'loglevel_console': \
-                 [self.ui_type_loglevel,
+                 ['loglevel',
                   'Log level for messages going to the console.', True],
 
                  'loglevel_file': \
-                 [self.ui_type_loglevel,
+                 ['loglevel',
                   'Log level for messages going to the log file.', True],
 
                  'logfile': \
-                 [self.ui_type_string,
+                 ['string',
                   'Logfile to use.', True],
 
                  'color_default': \
-                 [self.ui_type_colordefault,
+                 ['colordefault',
                   'Default text display color.', True],
 
                  'color_path': \
-                 [self.ui_type_color,
+                 ['color',
                   'Color to use for path completions', True],
 
                  'color_command': \
-                 [self.ui_type_color,
+                 ['color',
                   'Color to use for command completions.', True],
 
                  'color_parameter': \
-                 [self.ui_type_color,
+                 ['color',
                   'Color to use for parameter completions.', True],
 
                  'color_keyword': \
-                 [self.ui_type_color,
+                 ['color',
                   'Color to use for keyword completions.', True],
 
                  'completions_in_columns': \
-                 [self.ui_type_bool,
+                 ['bool',
                   'If B{true}, completions are displayed in columns, ' \
                   + 'else in lines.', True],
 
                  'prompt_length': \
-                 [self.ui_type_number,
+                 ['number',
                   'Maximum length of the shell prompt path, 0 means infinite.',
                   True]
                 }
@@ -413,7 +414,7 @@ class ConfigNode(object):
         '''
         return self.prefs[parameter]
 
-    def ui_eval_param(self, ui_value, type_helper, default):
+    def ui_eval_param(self, ui_value, type, default):
         '''
         Evaluates a user-provided parameter value using a given type helper.
         If the parameter value is None, the default will be returned. If the
@@ -422,14 +423,15 @@ class ConfigNode(object):
 
         @param ui_value: The user provided parameter value.
         @type ui_value: str
-        @param type_helper: The ui_type_XXX helper method to be used
-        @type type_helper: method
+        @param type: The ui_type to be used
+        @type type: str
         @param default: The default value to return.
         @type default: any
         @return: The evaluated parameter value.
         @rtype: depends on type_helper
         @raise ExecutionError: If evaluation fails.
         '''
+        type_helper = self.get_type_method(type)
         if ui_value is None:
             return default
         else:
@@ -439,6 +441,12 @@ class ConfigNode(object):
                 raise ExecutionError(msg)
             else:
                 return value
+
+    def get_type_method(self, type):
+        '''
+        Returns the type helper method matching the type name.
+        '''
+        return getattr(self, "%s%s" % (self.ui_type_method_prefix, type))
 
     # User interface commands
 
@@ -472,8 +480,9 @@ class ConfigNode(object):
                 for parameter, param_def \
                         in iter(sorted(
                             self._configuration_groups[group].iteritems())):
-                    (type_helper, description, writable) = param_def
+                    (type, description, writable) = param_def
                     if writable:
+                        type_helper = self.get_type_method(type)
                         parameter += '=I{' + type_helper() + '}'
                         underline2 = ''.ljust(len(parameter), '-')
                         parameters += '%s\n%s\n%s\n\n' \
@@ -486,7 +495,8 @@ class ConfigNode(object):
         elif group in self._configuration_groups:
             for param, value in parameter.iteritems():
                 if param in self._configuration_groups[group]:
-                    type_helper = self._configuration_groups[group][param][0]
+                    type_name = self._configuration_groups[group][param][0]
+                    type_helper = self.get_type_method(type_name)
                     writable = self._configuration_groups[group][param][2]
                     if writable:
                         try:
@@ -538,7 +548,8 @@ class ConfigNode(object):
                                 self._configuration_groups[group]
                                 if self._configuration_groups[group][param][2]]
                 if current_param in group_params:
-                    type_method = group_params[current_param][0]
+                    type_name = group_params[current_param][0]
+                    type_method = self.get_type_method(type_name)
                     type_enum = type_method(enum=True)
                     if type_enum is not None:
                         type_enum = [item for item in type_enum
@@ -591,7 +602,8 @@ class ConfigNode(object):
                     group_getter = self.get_group_getter(group)
                     value = group_getter(parameter)
                     group_params = self._configuration_groups[group]
-                    type_method = group_params[parameter][0]
+                    type = group_params[parameter][0]
+                    type_method = self.get_type_method(type)
                     value = type_method(value, reverse=True)
                     if param_def[2]:
                         parameter = parameter + '=' + value
