@@ -1723,7 +1723,7 @@ class ConfigNode(object):
             child.name = name
 
         if child.name in [ourchild.name for ourchild in self.children]:
-            raise ValueError("Node already has a child named %s" % name)
+            raise ValueError("Node already has a child named %s" % child.name)
         else:
             child.parent = self
             self._children.add(child)
