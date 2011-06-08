@@ -428,15 +428,15 @@ class ConfigNode(object):
         @param default: The default value to return.
         @type default: any
         @return: The evaluated parameter value.
-        @rtype: depends on type_helper
+        @rtype: depends on type
         @raise ExecutionError: If evaluation fails.
         '''
-        type_helper = self.get_type_method(type)
+        type_method = self.get_type_method(type)
         if ui_value is None:
             return default
         else:
             try:
-                value = type_helper(ui_value)
+                value = type_method(ui_value)
             except ValueError, msg:
                 raise ExecutionError(msg)
             else:
@@ -482,8 +482,8 @@ class ConfigNode(object):
                             self._configuration_groups[group].iteritems())):
                     (type, description, writable) = param_def
                     if writable:
-                        type_helper = self.get_type_method(type)
-                        parameter += '=I{' + type_helper() + '}'
+                        type_method = self.get_type_method(type)
+                        parameter += '=I{' + type_method() + '}'
                         underline2 = ''.ljust(len(parameter), '-')
                         parameters += '%s\n%s\n%s\n\n' \
                                 % (parameter, underline2, description)
@@ -496,11 +496,11 @@ class ConfigNode(object):
             for param, value in parameter.iteritems():
                 if param in self._configuration_groups[group]:
                     type_name = self._configuration_groups[group][param][0]
-                    type_helper = self.get_type_method(type_name)
+                    type_method = self.get_type_method(type_name)
                     writable = self._configuration_groups[group][param][2]
                     if writable:
                         try:
-                            value = type_helper(value)
+                            value = type_method(value)
                         except ValueError, msg:
                             self.log.error("Not setting %s! %s" % (param, msg))
                         else:
@@ -508,7 +508,7 @@ class ConfigNode(object):
                             group_setter(param, value)
                             group_getter = self.get_group_getter(group)
                             value = group_getter(param)
-                            value = type_helper(value, reverse=True)
+                            value = type_method(value, reverse=True)
                             self.con.display(
                                 "Parameter %s has been set to '%s'." \
                                 % (param, value))
@@ -548,8 +548,8 @@ class ConfigNode(object):
                                 self._configuration_groups[group]
                                 if self._configuration_groups[group][param][2]]
                 if current_param in group_params:
-                    type_name = group_params[current_param][0]
-                    type_method = self.get_type_method(type_name)
+                    type = self._configuration_groups[group][current_param][0]
+                    type_method = self.get_type_method(type)
                     type_enum = type_method(enum=True)
                     if type_enum is not None:
                         type_enum = [item for item in type_enum
@@ -624,8 +624,8 @@ class ConfigNode(object):
                     group_getter = self.get_group_getter(group)
                     value = group_getter(param)
                     group_params = self._configuration_groups[group]
-                    type_method = group_params[param][0]
                     writable = group_params[param][2]
+                    type_method = self.get_type_method(group_params[param][0])
                     value = type_method(value, reverse=True)
                     if writable:
                         writable = ""
