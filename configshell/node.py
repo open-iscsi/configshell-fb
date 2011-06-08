@@ -75,69 +75,52 @@ class ConfigNode(object):
         self.con = console.Console()
 
         self._configuration_groups = {}
-        self._configuration_groups['global'] = \
-                {'tree_round_nodes': \
-                 ['bool',
-                  'Tree node display style.', True],
 
-                 'tree_status_mode': \
-                 ['bool',
-                  'Whether or not to display status in tree.', True],
-
-                 'tree_max_depth': \
-                 ['number',
-                  'Maximum depth of displayed node tree.', True],
-
-                 'tree_show_root': \
-                 ['bool',
-                  'Whether or not to disply tree root.', True],
-
-                 'color_mode': \
-                 ['bool',
-                  'Console color display mode.', True],
-
-                 'loglevel_console': \
-                 ['loglevel',
-                  'Log level for messages going to the console.', True],
-
-                 'loglevel_file': \
-                 ['loglevel',
-                  'Log level for messages going to the log file.', True],
-
-                 'logfile': \
-                 ['string',
-                  'Logfile to use.', True],
-
-                 'color_default': \
-                 ['colordefault',
-                  'Default text display color.', True],
-
-                 'color_path': \
-                 ['color',
-                  'Color to use for path completions', True],
-
-                 'color_command': \
-                 ['color',
-                  'Color to use for command completions.', True],
-
-                 'color_parameter': \
-                 ['color',
-                  'Color to use for parameter completions.', True],
-
-                 'color_keyword': \
-                 ['color',
-                  'Color to use for keyword completions.', True],
-
-                 'completions_in_columns': \
-                 ['bool',
-                  'If B{true}, completions are displayed in columns, ' \
-                  + 'else in lines.', True],
-
-                 'prompt_length': \
-                 ['number',
-                  'Maximum length of the shell prompt path, 0 means infinite.',
-                  True]
-                }
+        self.define_config_group_param(
+            'global', 'tree_round_nodes', 'bool',
+            'Tree node display style.')
+        self.define_config_group_param(
+            'global', 'tree_status_mode', 'bool',
+            'Whether or not to display status in tree.')
+        self.define_config_group_param(
+            'global', 'tree_max_depth', 'number',
+            'Maximum depth of displayed node tree.')
+        self.define_config_group_param(
+            'global', 'tree_show_root', 'bool',
+            'Whether or not to display tree root.')
+        self.define_config_group_param(
+            'global', 'color_mode', 'bool',
+            'Console color display mode.')
+        self.define_config_group_param(
+            'global', 'loglevel_console', 'loglevel',
+            'Log level for messages going to the console.')
+        self.define_config_group_param(
+            'global', 'loglevel_file', 'loglevel',
+            'Log level for messages going to the log file.')
+        self.define_config_group_param(
+            'global', 'logfile', 'string',
+            'Logfile to use.')
+        self.define_config_group_param(
+            'global', 'color_default', 'colordefault',
+            'Default text display color.')
+        self.define_config_group_param(
+            'global', 'color_path', 'color',
+            'Color to use for path completions')
+        self.define_config_group_param(
+            'global', 'color_command', 'color',
+            'Color to use for command completions.')
+        self.define_config_group_param(
+            'global', 'color_parameter', 'color',
+            'Color to use for parameter completions.')
+        self.define_config_group_param(
+            'global', 'color_keyword', 'color',
+            'Color to use for keyword completions.')
+        self.define_config_group_param(
+            'global', 'completions_in_columns', 'bool',
+            'If B{true}, display completions in columns, not lines.')
+        self.define_config_group_param(
+            'global', 'prompt_length', 'number',
+            'Max length of the shell prompt path, 0 for infinite.')
 
         if self.prefs['bookmarks'] is None:
             self.prefs['bookmarks'] = {}
@@ -471,34 +454,29 @@ class ConfigNode(object):
                                AVAILABLE CONFIGURATION GROUPS
                                ==============================
                                %s
-                               ''' % ' '.join(self._configuration_groups))
+                               ''' % ' '.join(self.list_config_groups()))
         elif not parameter:
-            if group in self._configuration_groups:
+            if group in self.list_config_groups():
                 section = "%s CONFIG GROUP" % group.upper()
                 underline1 = ''.ljust(len(section), '=')
                 parameters = ''
-                for parameter, param_def \
-                        in iter(sorted(
-                            self._configuration_groups[group].iteritems())):
-                    (type, description, writable) = param_def
-                    if writable:
-                        type_method = self.get_type_method(type)
-                        parameter += '=I{' + type_method() + '}'
-                        underline2 = ''.ljust(len(parameter), '-')
-                        parameters += '%s\n%s\n%s\n\n' \
-                                % (parameter, underline2, description)
-
+                for p_name in self.list_group_params(group, writable=True):
+                    p_def = self.get_group_param(group, p_name)
+                    type_method = self.get_type_method(p_def['type'])
+                    parameter = "%s=I{%s}" % (p_def['name'], p_def['type'])
+                    underline2 = ''.ljust(len(parameter), '-')
+                    parameters += '%s\n%s\n%s\n\n' \
+                            % (parameter, underline2, p_def['description'])
                 self.con.epy_write('''%s\n%s\n%s\n''' \
                                    % (section, underline1, parameters))
             else:
                 self.log.error("Unknown configuration group: %s" % group)
-        elif group in self._configuration_groups:
+        elif group in self.list_config_groups():
             for param, value in parameter.iteritems():
-                if param in self._configuration_groups[group]:
-                    type_name = self._configuration_groups[group][param][0]
-                    type_method = self.get_type_method(type_name)
-                    writable = self._configuration_groups[group][param][2]
-                    if writable:
+                if param in self.list_group_params(group):
+                    p_def = self.get_group_param(group, param)
+                    type_method = self.get_type_method(p_def['type'])
+                    if p_def['writable']:
                         try:
                             value = type_method(value)
                         except ValueError, msg:
@@ -509,15 +487,13 @@ class ConfigNode(object):
                             group_getter = self.get_group_getter(group)
                             value = group_getter(param)
                             value = type_method(value, reverse=True)
-                            self.con.display(
-                                "Parameter %s has been set to '%s'." \
-                                % (param, value))
+                            self.con.display( "Parameter %s is now '%s'." \
+                                             % (param, value))
                     else:
                         self.log.error("Parameter '%s' is read-only." % param)
                 else:
-                    self.log.error(
-                        "There is no parameter named '%s' in group '%s'." \
-                        % (param, group))
+                    self.log.error("Unknown parameter '%s' in group '%s'." \
+                                   % (param, group))
         else:
             self.log.error("Unknown configuration group: %s" % group)
 
@@ -539,17 +515,15 @@ class ConfigNode(object):
                       % (str(parameters), text, current_param))
 
         if current_param == 'group':
-            completions = [group for group in self._configuration_groups
+            completions = [group for group in self.list_config_groups()
                            if group.startswith(text)]
         elif 'group' in parameters:
             group = parameters['group']
-            if group in self._configuration_groups:
-                group_params = [param for param in
-                                self._configuration_groups[group]
-                                if self._configuration_groups[group][param][2]]
+            if group in self.list_config_groups():
+                group_params = self.list_group_params(group, writable=True)
                 if current_param in group_params:
-                    type = self._configuration_groups[group][current_param][0]
-                    type_method = self.get_type_method(type)
+                    p_def = self.get_group_param(group, current_param)
+                    type_method = self.get_type_method(p_def['type'])
                     type_enum = type_method(enum=True)
                     if type_enum is not None:
                         type_enum = [item for item in type_enum
@@ -558,8 +532,7 @@ class ConfigNode(object):
                 else:
                     group_params = ([param + '=' for param in group_params
                                      if param.startswith(text)
-                                     if param not in parameters
-                                    ])
+                                     if param not in parameters])
                     if group_params:
                         completions.extend(group_params)
 
@@ -589,53 +562,47 @@ class ConfigNode(object):
                                AVAILABLE CONFIGURATION GROUPS
                                ==============================
                                %s
-                               ''' % ' '.join(self._configuration_groups))
+                               ''' % ' '.join(self.list_config_groups()))
         elif not parameter:
-            if group in self._configuration_groups:
+            if group in self.list_config_groups():
                 section = "%s CONFIG GROUP" % group.upper()
                 underline1 = ''.ljust(len(section), '=')
                 parameters = ''
-                params = self._configuration_groups[group].items()
-                params.sort()
-                for parameter, param_def in params:
-                    description = param_def[1]
+                params = [self.get_group_param(group, p_name)
+                          for p_name in self.list_group_params(group)]
+                for p_def in params:
                     group_getter = self.get_group_getter(group)
-                    value = group_getter(parameter)
-                    group_params = self._configuration_groups[group]
-                    type = group_params[parameter][0]
-                    type_method = self.get_type_method(type)
+                    value = group_getter(p_def['name'])
+                    type_method = self.get_type_method(p_def['type'])
                     value = type_method(value, reverse=True)
-                    if param_def[2]:
-                        parameter = parameter + '=' + value
-                    else:
-                        parameter = parameter + '=' + value + " [ro]"
+                    parameter = "%s=%s" % (p_def['name'], value)
+                    if p_def['writable'] is False:
+                        parameter += " [ro]"
                     underline2 = ''.ljust(len(parameter), '-')
                     parameters += '%s\n%s\n%s\n\n' \
-                            % (parameter, underline2, description)
+                            % (parameter, underline2, p_def['description'])
 
                 self.con.epy_write('''%s\n%s\n%s\n''' \
                                    % (section, underline1, parameters))
             else:
                 self.log.error("Unknown configuration group: %s" % group)
-        elif group in self._configuration_groups:
+        elif group in self.list_config_groups():
             for param in parameter:
-                if param in self._configuration_groups[group]:
+                if param in self.list_group_params(group):
                     self.log.debug("About to get the parameter's value.")
                     group_getter = self.get_group_getter(group)
                     value = group_getter(param)
-                    group_params = self._configuration_groups[group]
-                    writable = group_params[param][2]
-                    type_method = self.get_type_method(group_params[param][0])
+                    p_def = self.get_group_param(group, param)
+                    type_method = self.get_type_method(p_def['type'])
                     value = type_method(value, reverse=True)
-                    if writable:
+                    if p_def['writable']:
                         writable = ""
                     else:
                         writable = "[ro]"
                     self.con.display("%s=%s %s" % (param, value, writable))
                 else:
                     self.log.error(
-                        "There is no parameter named '%s' in group '%s'." \
-                        % (param, group))
+                        "No parameter '%s' in group '%s'." % (param, group))
         else:
             self.log.error("Unknown configuration group: %s" % group)
 
@@ -657,16 +624,15 @@ class ConfigNode(object):
                       % (str(parameters), text, current_param))
 
         if current_param == 'group':
-            completions = [group for group in self._configuration_groups
+            completions = [group for group in self.list_config_groups()
                            if group.startswith(text)]
         elif 'group' in parameters:
             group = parameters['group']
-            if group in self._configuration_groups:
-                group_params = self._configuration_groups[group]
-                group_params = ([param for param in group_params
+            if group in self.list_config_groups():
+                group_params = ([param
+                                 for param in self.list_group_params(group)
                                  if param.startswith(text)
-                                 if param not in parameters
-                                ])
+                                 if param not in parameters])
                 if group_params:
                     completions.extend(group_params)
 
@@ -1605,6 +1571,92 @@ class ConfigNode(object):
             return self
         else:
             return self.parent.get_root()
+
+    def define_config_group_param(self, group, param, type,
+                                  description=None, writable=True):
+        '''
+        Helper to define configuration group parameters.
+        @param group: The configuration group to add the parameter to.
+        @type group: str
+        @param param: The new parameter name.
+        @type param: str
+        @param description: Optional description string.
+        @type description: str
+        @param writable: Whether or not this would be a rw or ro parameter.
+        @type writable: bool
+        '''
+        if group not in self._configuration_groups:
+            self._configuration_groups[group] = {}
+
+        if description is None:
+            description = "The %s %s parameter." % (param, group)
+
+        # Fail early if the type and set/get helpers don't exist
+        self.get_type_method(type)
+        self.get_group_getter(group)
+        if writable:
+            self.get_group_setter(group)
+
+        self._configuration_groups[group][param] = \
+                [type, description, writable]
+
+    def list_config_groups(self):
+        '''
+        Lists the configuration group names.
+        '''
+        return self._configuration_groups
+
+    def list_group_params(self, group, param=None, writable=None, type=None):
+        '''
+        Lists the parameters from group matching the optional param, writable
+        and type supplied (if none is supplied, returns all group parameters.
+        @param group: The group to list parameters of.
+        @type group: str
+        @param param: Optional parameter name filter.
+        @type param: str
+        @param writable: Optional writable flag filter.
+        @type writable: bool
+        @param type: Optional type filter.
+        @type type: str
+        '''
+        if group not in self.list_config_groups():
+            return []
+        else:
+            params = []
+            for p_name, p_def in self._configuration_groups[group].iteritems():
+                (p_type, p_description, p_writable) = p_def
+                if type is not None and p_type != type:
+                    pass
+                elif writable is not None and p_writable != writable:
+                    pass
+                elif param is not None and p_name != param:
+                    pass
+                else:
+                    params.append(p_name)
+            params.sort()
+            return params
+
+    def get_group_param(self, group, param):
+        '''
+        @param group: The configuration group to retreive the parameter from.
+        @type group: str
+        @param param: The parameter name.
+        @type param: str
+        @return: A dictionnary for the requested group parameter, with
+        name, writable, description, group and type fields.
+        @rtype: dict
+        @raise ValueError: If the parameter or group does not exist.
+        '''
+        if group not in self.list_config_groups():
+            raise ValueError("Not such configuration group %s" % group)
+        if param not in self.list_group_params(group):
+            raise ValueError("Not such parameter %s in configuration group %s"
+                             % (param, group))
+        (p_type, p_description, p_writable) = \
+                self._configuration_groups[group][param]
+
+        return dict(name=param, group=group, type=p_type,
+                    description=p_description, writable=p_writable)
 
     name = property(_get_name,
                     _set_name,
