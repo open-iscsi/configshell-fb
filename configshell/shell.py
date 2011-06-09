@@ -92,7 +92,7 @@ class ConfigShell(object):
             >value<      := var?
             path         := bookmark/pathstd/[0-9]+/'..'/'.'/'*'
             <pathstd>    := ([a-zA-Z0-9:_.-]*, '/', [a-zA-Z0-9:_./-]*, '*'?)
-            <var>        := [a-zA-Z0-9_\\+/.<>~@:-]+
+            <var>        := [a-zA-Z0-9_\\+/.<>~@:-%]+
             <bookmark>   := '@', var?
             '''
 
@@ -109,7 +109,7 @@ class ConfigShell(object):
         self._exit = False
 
         self._parser = simpleparse.parser.Parser(self.grammar, root='line')
-        readline.set_completer_delims('\t\n ~!#$%^&()[{]}\|;\'",?')
+        readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
 
         self.log = log.Log()
 
