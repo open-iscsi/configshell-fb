@@ -35,7 +35,12 @@ def handle_sigint(signum, frame):
     still have to do the translation ourselves.
     '''
     raise KeyboardInterrupt
-signal.signal(signal.SIGINT, handle_sigint)
+
+try:
+    signal.signal(signal.SIGINT, handle_sigint)
+except Exception:
+    # In a thread, this fails
+    pass
 
 class ConfigShell(object):
     '''
@@ -96,16 +101,14 @@ class ConfigShell(object):
             <bookmark>   := '@', var?
             '''
 
-    def __init__(self, root_node, preferences_dir=None):
+    def __init__(self, preferences_dir=None):
         '''
         Creates a new ConfigShell.
-        @param root_node: The root ConfigNode object
-        @type root_node: ConfigNode
         @param preferences_dir: Directory to load/save preferences from/to
         @type preferences_dir: str
         '''
-        self._current_node = root_node
-        self._root_node = root_node
+        self._current_node = None
+        self._root_node = None
         self._exit = False
 
         self._parser = simpleparse.parser.Parser(self.grammar, root='line')
@@ -125,8 +128,8 @@ class ConfigShell(object):
                 try:
                     open(self._cmd_history, 'w').close()
                 except:
-                    self.log.warning("Cannot create history file %s, " \
-                                    % self._cmd_history \
+                    self.log.warning("Cannot create history file %s, "
+                                     % self._cmd_history
                                      + "command history will not be saved.")
                     self._save_history = False
 
@@ -134,7 +137,7 @@ class ConfigShell(object):
                 try:
                     readline.read_history_file(self._cmd_history)
                 except IOError:
-                    self.log.warning("Cannot read command history file %s." \
+                    self.log.warning("Cannot read command history file %s."
                                      % self._cmd_history)
 
             if self.prefs['logfile'] is None:
@@ -149,8 +152,8 @@ class ConfigShell(object):
         try:
             self.prefs.load()
         except IOError:
-            self.log.warning("Could not load preferences file %s." \
-                           % self._prefs_file)
+            self.log.warning("Could not load preferences file %s."
+                             % self._prefs_file)
 
         for pref, value in self.default_prefs.iteritems():
             if pref not in self.prefs:
@@ -412,7 +415,7 @@ class ConfigShell(object):
         if text.endswith('.'):
             text = text + '/'
         (basedir, slash, partial_name) = text.rpartition('/')
-        self.log.debug("Got basedir=%s, partial_name=%s" \
+        self.log.debug("Got basedir=%s, partial_name=%s"
                        % (basedir, partial_name))
         basedir = basedir + slash
         target = self._current_node.get_node(basedir)
@@ -483,8 +486,8 @@ class ConfigShell(object):
             current_parameters[key] = value
         self._completion_help_topic = command
         completion_method = target.get_completion_method(command)
-        self.log.debug("Command %s accepts parameters %s." \
-                      % (command, cmd_params))
+        self.log.debug("Command %s accepts parameters %s."
+                       % (command, cmd_params))
 
         # Do we still accept positional params ?
         pparam_ok = True
@@ -530,9 +533,9 @@ class ConfigShell(object):
                        if param not in kparams \
                        if param.startswith(text)]
 
-        self.log.debug("Possible pparam values are %s." \
+        self.log.debug("Possible pparam values are %s."
                        % str(completions))
-        self.log.debug("Possible kparam keywords are %s." \
+        self.log.debug("Possible kparam keywords are %s."
                        % str(keyword_completions))
 
         if keyword_completions:
@@ -616,11 +619,11 @@ class ConfigShell(object):
         self.log.debug("Called for text='%s'" % text)
         target = self._current_node.get_node(path)
         cmd_params = target.get_command_signature(command)[0]
-        self.log.debug("Command %s accepts parameters %s." \
-                      % (command, cmd_params))
+        self.log.debug("Command %s accepts parameters %s."
+                       % (command, cmd_params))
 
         (keyword, sep, current_value) = text.partition('=')
-        self.log.debug("Completing '%s' for kparam %s" \
+        self.log.debug("Completing '%s' for kparam %s"
                        % (current_value, keyword))
 
         self._current_parameter = keyword
@@ -686,7 +689,7 @@ class ConfigShell(object):
                                               pparams, kparams,
                                               text, current_token)
 
-            self.log.debug("Returning completions %s to readline." \
+            self.log.debug("Returning completions %s to readline."
                            % str(self._current_completions))
 
         if state < len(self._current_completions):
@@ -722,11 +725,11 @@ class ConfigShell(object):
         '''
         completions = []
 
-        self.log.debug("Dispatching completion for %s token. " \
-                       % current_token \
-                       + "text='%s', path='%s', command='%s', " \
-                       % (text, path, command) \
-                       + "pparams=%s, kparams=%s" \
+        self.log.debug("Dispatching completion for %s token. "
+                       % current_token
+                       + "text='%s', path='%s', command='%s', "
+                       % (text, path, command)
+                       + "pparams=%s, kparams=%s"
                        % (str(pparams), str(kparams)))
 
         (path, iterall) = path.partition('*')[:2]
@@ -759,7 +762,7 @@ class ConfigShell(object):
                     self._complete_token_kparam(text, cpl_path, command,
                                                 pparams, kparams)
         else:
-            self.log.debug('Cannot complete unknown token %s.' \
+            self.log.debug("Cannot complete unknown token %s."
                            % current_token)
 
         return completions
@@ -844,8 +847,8 @@ class ConfigShell(object):
                     (keyword, sep, value) = value.partition('=')
                     kparams[keyword] = value
 
-        self.log.debug("Parse gave path='%s' command='%s' " % (path, command) \
-                       + "pparams=%s " % str(pparams) \
+        self.log.debug("Parse gave path='%s' command='%s' " % (path, command)
+                       + "pparams=%s " % str(pparams)
                        + "kparams=%s" % str(kparams))
         return (result_trees, path, command, pparams, kparams)
 
@@ -981,3 +984,11 @@ class ConfigShell(object):
             self.run_interactive()
         finally:
             readline.set_completer(old_completer)
+
+    def attach_root_node(self, root_node):
+        '''
+        @param root_node: The root ConfigNode object
+        @type root_node: ConfigNode
+        '''
+        self._current_node = root_node
+        self._root_node = root_node
