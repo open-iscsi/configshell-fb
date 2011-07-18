@@ -25,6 +25,8 @@ import configshell.log as log
 import configshell.prefs as prefs
 import configshell.console as console
 
+from configshell.node import ConfigNode, ExecutionError
+
 # A fix for frozen packages
 import signal
 def handle_sigint(signum, frame):
@@ -898,10 +900,13 @@ class ConfigShell(object):
                 if iterall:
                     self.con.display("[%s]" % target.path)
                 result = target.execute_command(command, pparams, kparams)
-            if result is 'EXIT':
+            self.log.debug("Command execution returned %r" % result)
+            if isinstance(result, ConfigNode):
+                self._current_node = result
+            elif result == 'EXIT':
                 self._exit = True
             elif result is not None:
-                self._current_node = result
+                raise ExecutionError("Unexpected result: %r" % result)
 
     # Public methods
 
