@@ -43,22 +43,33 @@ class ConfigNode(object):
                  This is an interactive shell in which you can create, delete
                  and configure configuration objects.
 
-                 The available commands depend on the work path you are in the
-                 objects tree. The prompt that starts each command line
-                 indicates your current position, or you can run the I{pwd}
-                 command to that effect. Navigating the tree is done using the
-                 I{cd} command. Please try I{help cd} for navigation tips.
+                 The available commands depend on the current path or target
+                 path you want to run a command in: different path have
+                 different sets of available commands, i.e. a path pointing at
+                 an iscsi target will not have the same availaible commands as,
+                 say, a path pointing at a storage object.
+
+                 The prompt that starts each command line indicates your
+                 current path. Alternatively (useful if the prompt displays
+                 an abbreviated path to save space), you can run the
+                 B{pwd} command to display the complete current path.
+
+                 Navigating the tree is done using the B{cd} command. Without
+                 any argument, B{cd} will present you wil the full objects
+                 tree. Just use arrows to select the destination path, and
+                 enter will get you there. Please try B{help cd} for navigation
+                 tips.
 
                  COMMAND SYNTAX
                  ==============
                  Commands are built using the following syntax:
 
-                 [I{PATH}] I{COMMAND_NAME} [I{OPTIONS}]
+                 [I{TARGET_PATH}] B{COMMAND_NAME} [I{OPTIONS}]
 
-                 The I{PATH} indicates the object to run the command on. If
-                 ommited, the command will be run from your working path.
+                 The I{TARGET_PATH} indicates the path to run the command from.
+                 If ommited, the command will be run from your current path.
 
-                 The I{OPTIONS} depend on the command. Please use I{help
+                 The I{OPTIONS} depend on the command. Please use B{help
                  COMMAND} to get more information.
                  '''
 
@@ -912,7 +923,7 @@ class ConfigNode(object):
 
     def ui_command_cd(self, path=None):
         '''
-        Change current work path to path.
+        Change current path to path.
 
         The path is constructed just like a unix path, with B{/} as separator
         character, B{.} for the current node, B{..} for the parent node.
@@ -1108,7 +1119,7 @@ class ConfigNode(object):
                                    AVAILABLE COMMANDS
                                    ==================
                                    The following commands are available in the
-                                   work path:
+                                   current path:
 
                                    ''')
             for command in commands:
@@ -1282,7 +1293,7 @@ class ConfigNode(object):
 
     def ui_command_pwd(self):
         '''
-        Displays the current working path.
+        Displays the current path.
 
         SEE ALSO
         ========
@@ -1399,13 +1410,13 @@ class ConfigNode(object):
 
     def assert_params(self, method, pparams, kparams):
         '''
-        Checks that positional and keywork parameters match a method
+        Checks that positional and keyword parameters match a method
         definition, or raise an ExecutionError.
         @param method: The method to check call signature against.
         @type method: method
         @param pparams: The positional parameters.
         @type pparams: list
-        @param kparams: The keywork parameters.
+        @param kparams: The keyword parameters.
         @type kparams: dict
         @raise ExecutionError: When the check fails.
         '''
