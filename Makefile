@@ -19,6 +19,7 @@ DOC = ${LIB}/doc/
 SETUP = ./setup.py
 GENDOC = ./bin/gendoc
 RPMVERSION = $$(grep Version: redhat/python-configshell.spec | awk '{print $$2}')
+GIT_BRANCH = $$(git branch | grep \* | tr -d \*)
 
 all: usage
 usage:
@@ -84,7 +85,7 @@ rpm: doc
 	@echo Building RPM version ${RPMVERSION}
 	mkdir -p ~/rpmbuild/SOURCES/
 	mkdir -p build
-	git archive master --prefix configshell/ > build/configshell.tar
+	git archive $(GIT_BRANCH) --prefix configshell/ > build/configshell.tar
 	cd build; tar mxf configshell.tar; rm configshell.tar
 	cp configshell/__init__.py build/configshell/configshell
 	cp -r doc build/configshell/
