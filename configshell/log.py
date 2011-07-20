@@ -36,7 +36,7 @@ class Log(object):
     '''
     __borg_state = {}
     levels = ['critical', 'error', 'warning', 'info', 'debug']
-    colors = {'critical': 'red', 'error': 'red', 'warning': 'red',
+    colors = {'critical': 'red', 'error': 'red', 'warning': 'blue',
               'info': 'green', 'debug': 'blue'}
 
     def __init__(self, console_level=None,
