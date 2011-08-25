@@ -25,6 +25,12 @@ from fcntl import ioctl
 import epydoc.markup.epytext
 from termios import TIOCGWINSZ, TCSADRAIN, tcsetattr, tcgetattr
 
+# avoid requiring epydoc at runtime
+try:
+    import epydoc.markup.epytext
+except ImportError:
+    pass
+
 class Console(object):
     '''
     Implements various utility methods providing a console UI support toolkit,
@@ -154,6 +160,14 @@ class Console(object):
         text = self.dedent(text)
         try:
             dom_tree = epydoc.markup.epytext.parse(text, None)
+        except NameError:
+            # epydoc not installed, strip markup
+            dom_tree = text
+            dom_tree = dom_tree.replace("B{", "")
+            dom_tree = dom_tree.replace("I{", "")
+            dom_tree = dom_tree.replace("C{", "")
+            dom_tree = dom_tree.replace("}", "")
+            dom_tree += "\n"
         except:
             self.display(text)
             raise
