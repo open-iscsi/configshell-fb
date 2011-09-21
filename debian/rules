@@ -3,6 +3,7 @@
 build_dir   = build
 install_dir = debian/tmp
 setup       = /usr/bin/python ./setup.py --quiet
+name 		= configshell
 
 binary: binary-indep
 
@@ -32,6 +33,15 @@ build-stamp:
 	dh_testdir
 	$(setup) build --build-base $(build_dir) install --no-compile --install-purelib $(install_dir)/lib/configshell --install-scripts $(install_dir)/bin
 	echo "2.6" > $(install_dir)/lib/configshell/.version
+	mkdir -p $(build_dir) doc/pdf
+	cd $(build_dir); epydoc --no-sourcecode --pdf -n $(name) \
+		--exclude configobj ../$(name)/*.py
+	cp $(build_dir)/pdf/api.pdf doc/pdf/$(name)_API_Documentation.pdf
+	cd $(build_dir); epydoc --no-sourcecode --html -n $(name) \
+		--exclude configobj ../$(name)/*.py
+	sed -i "s/<\?/<!/g" $(build_dir)/html/*.html
+	sed -i "s/\?>/>/g" $(build_dir)/html/*.html
+	cp -r $(build_dir)/html doc/
 	touch build-stamp
 
 clean:

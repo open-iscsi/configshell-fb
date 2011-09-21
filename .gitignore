@@ -20,4 +20,5 @@ debian/python-configshell.substvars
 debian/configshell-doc.debhelper.log
 debian/tmp/
 *.spec
+*.pyc
 rtslib-*

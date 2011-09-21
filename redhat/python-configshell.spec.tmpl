@@ -30,6 +30,13 @@ PDF and HTML API reference for python-configshell.
 
 %build
 %{__python} setup.py build
+mkdir -p doc/pdf
+epydoc --no-sourcecode --pdf -n %{oname} --exclude configobj %{oname}/*.py
+mv pdf/api.pdf doc/pdf/%{oname}_API_Documentation.pdf
+epydoc --no-sourcecode --html -n %{oname} --exclude configobj %{oname}/*.py
+sed -i "s/<\?/<!/g" html/*.html
+sed -i "s/\?>/>/g" html/*.html
+mv html doc/
 
 %install
 rm -rf %{buildroot}
