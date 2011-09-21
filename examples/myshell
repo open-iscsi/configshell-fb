@@ -20,20 +20,16 @@ import os
 import configshell
 
 class MySystemRoot(configshell.node.ConfigNode):
-    def __init__(self):
-        configshell.node.ConfigNode.__init__(self)
-        for child in Interpreters(), System():
-            self.add_child(child)
-        target = self
+    def __init__(self, shell):
+        configshell.node.ConfigNode.__init__(self, '/', shell=shell)
+        Interpreters(self)
+        System(self)
         for level in range(1,20):
-            child = configshell.node.ConfigNode()
-            target.add_child(child, "level%d" % level)
-            target = child
+            configshell.node.ConfigNode("level%d" % level, self)
 
 class Interpreters(configshell.node.ConfigNode):
-    def __init__(self):
-        configshell.node.ConfigNode.__init__(self)
-        self.name = 'interpreters'
+    def __init__(self, parent):
+        configshell.node.ConfigNode.__init__(self, 'interpreters', parent)
 
     def ui_command_python(self):
         '''
@@ -54,11 +50,10 @@ class Interpreters(configshell.node.ConfigNode):
         os.system("bash")
 
 class System(configshell.node.ConfigNode):
-    def __init__(self):
-        configshell.node.ConfigNode.__init__(self)
-        self.name = 'system'
-        for child in Processes(), Storage():
-            self.add_child(child)
+    def __init__(self, parent):
+        configshell.node.ConfigNode.__init__(self, 'system', parent)
+        Processes(self)
+        Storage(self)
 
     def ui_command_uname(self):
         '''
@@ -98,9 +93,8 @@ class System(configshell.node.ConfigNode):
 
 
 class Storage(configshell.node.ConfigNode):
-    def __init__(self):
-        configshell.node.ConfigNode.__init__(self)
-        self.name = 'storage'
+    def __init__(self, parent):
+        configshell.node.ConfigNode.__init__(self, 'storage', parent)
 
     def ui_command_lsscsi(self):
         '''
@@ -127,9 +121,8 @@ class Storage(configshell.node.ConfigNode):
         os.system("uuidgen")
 
 class Processes(configshell.node.ConfigNode):
-    def __init__(self):
-        configshell.node.ConfigNode.__init__(self)
-        self.name = 'processes'
+    def __init__(self, parent):
+        configshell.node.ConfigNode.__init__(self, 'processes', parent)
 
     def ui_command_top(self):
         '''
@@ -150,9 +143,8 @@ class Processes(configshell.node.ConfigNode):
         os.system("pstree")
 
 class Users(configshell.node.ConfigNode):
-    def __init__(self):
-        configshell.node.ConfigNode.__init__(self)
-        self.name = 'users'
+    def __init__(self, parent):
+        configshell.node.ConfigNode.__init__(self, 'users', parent)
 
     def ui_command_who(self):
         '''
@@ -173,8 +165,8 @@ class Users(configshell.node.ConfigNode):
         os.system("users")
 
 def main():
-    root_node = MySystemRoot()
-    shell = configshell.shell.ConfigShell(root_node, '~/.myshell')
+    shell = configshell.shell.ConfigShell('~/.myshell')
+    root_node = MySystemRoot(shell)
     shell.run_interactive()
 
 if __name__ == "__main__":
