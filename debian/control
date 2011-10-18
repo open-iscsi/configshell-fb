@@ -11,14 +11,4 @@ Depends: python (>= 2.6)|python2.6, python-epydoc, python-simpleparse, python-ur
 Suggests: configshell-doc
 Description: Framework to create CLI interfaces.
  .
- This package contains the configshell library.  
-
-Package: configshell-doc
-Section: doc
-Architecture: all
-Recommends: iceweasel | www-browser
-Description: official API documentation for the configshell library
- .
- This package contains the API reference and usage information for configshell,
- a framework to create CLI interfaces.
-
+ This package contains the configshell library.
