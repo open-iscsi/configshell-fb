@@ -24,8 +24,6 @@ A framework to implement simple but nice command-line interfaces.
 %{__python} setup.py build
 mkdir -p doc/
 epydoc --no-sourcecode --html -n %{oname} --exclude configobj %{oname}/*.py
-sed -i "s/<\?/<!/g" html/*.html
-sed -i "s/\?>/>/g" html/*.html
 mv html doc/
 
 %install
