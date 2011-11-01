@@ -18,12 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import re
 import sys
 import tty
-import fcntl
 import prefs
 import struct
-import termios
 import textwrap
+from fcntl import ioctl
 import epydoc.markup.epytext
+from termios import TIOCGWINSZ, TCSADRAIN, tcsetattr, tcgetattr
 
 class Console(object):
     '''
@@ -31,7 +31,7 @@ class Console(object):
     most notably an epytext-to-console text renderer using ANSI escape
     sequences. It uses the Borg pattern to share state between instances.
     '''
-    _max_width = 80
+    _max_width = 132
     _escape = '\033['
     _ansi_format = _escape + '%dm%s'
     _ansi_reset = _escape + '0m'
@@ -75,7 +75,7 @@ class Console(object):
         @param reply_terminator: The expected end-of-reply marker.
         @type reply_terminator: str
         '''
-        attributes = termios.tcgetattr(self._stdin)
+        attributes = tcgetattr(self._stdin)
         tty.setraw(self._stdin)
         try:
             self.raw_write(self._escape + sequence)
@@ -84,7 +84,7 @@ class Console(object):
                 while reply[-len(reply_terminator):] != reply_terminator:
                     reply += self._stdin.read(1)
         finally:
-            termios.tcsetattr(self._stdin, termios.TCSADRAIN, attributes)
+            tcsetattr(self._stdin, TCSADRAIN, attributes)
         if reply_terminator is not None:
             reply = reply[:-len(reply_terminator)]
             reply = reply.replace(self._escape, '').split(';')
@@ -92,16 +92,20 @@ class Console(object):
 
     def get_width(self):
         '''
-        Returns the console width
+        Returns the console width, or maximum width if we are not a terminal
+        device.
         '''
-        width = struct.unpack("HHHH",
-                             fcntl.ioctl(self._stdout.fileno(),
-                                         termios.TIOCGWINSZ,
-                                         struct.pack("HHHH", 0, 0, 0, 0)))[1]
-        if width > self._max_width:
-            return self._max_width
+        try:
+            winsize = struct.pack("HHHH", 0, 0, 0, 0)
+            winsize = ioctl(self._stdout.fileno(), TIOCGWINSZ, winsize)
+            width = struct.unpack("HHHH", winsize)[1]
+        except IOError:
+            width = self._max_width
         else:
-            return width
+            if width > self._max_width:
+                width = self._max_width
+
+        return width
 
     def get_cursor_xy(self):
         '''
