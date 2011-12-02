@@ -1636,8 +1636,7 @@ class ConfigNode(object):
 
         default_values = ''
         if num_defaults > 0:
-            index = 0
-            for param in optional_parameters:
+            for index, param in enumerate(optional_parameters):
                 if default[index] is not None:
                     default_values += "%s=%s " % (param, str(default[index]))
 
