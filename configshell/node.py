@@ -40,8 +40,8 @@ class ConfigNode(object):
     help_intro = '''
                  GENERALITIES
                  ============
-                 This is an interactive shell in which you can create, delete
-                 and configure configuration objects.
+                 This is a shell in which you can create, delete and configure
+                 configuration objects.
 
                  The available commands depend on the current path or target
                  path you want to run a command in: different path have
