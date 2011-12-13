@@ -266,9 +266,9 @@ class ConfigNode(object):
                 return type_enum
             else:
                 return syntax
-        elif value == 'true':
+        elif value.lower() == 'true':
             return True
-        elif value == 'false':
+        elif value.lower() == 'false':
             return False
         else:
             raise ValueError("Syntax error, '%s' is not %s."
