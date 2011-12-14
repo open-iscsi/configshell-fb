@@ -230,7 +230,7 @@ class Console(object):
         output, reset to default color. Only if not open_end.
         @type todefault: bool
         '''
-        if self.prefs['color_mode']:
+        if self.prefs['color_mode'] and self._stdout.isatty():
             if fgcolor is None:
                 if self.prefs['color_default']:
                     fgcolor = self.prefs['color_default']
