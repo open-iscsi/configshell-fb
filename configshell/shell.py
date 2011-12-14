@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
-import readline
 import simpleparse.parser
 import simpleparse.dispatchprocessor
 
@@ -43,6 +42,12 @@ try:
 except Exception:
     # In a thread, this fails
     pass
+
+if sys.stdout.isatty():
+    import readline
+    tty=True
+else:
+    tty=False
 
 class ConfigShell(object):
     '''
@@ -114,7 +119,9 @@ class ConfigShell(object):
         self._exit = False
 
         self._parser = simpleparse.parser.Parser(self.grammar, root='line')
-        readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
+
+        if tty:
+            readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
 
         self.log = log.Log()
 
@@ -135,7 +142,7 @@ class ConfigShell(object):
                                      + "command history will not be saved.")
                     self._save_history = False
 
-            if os.path.isfile(self._cmd_history):
+            if os.path.isfile(self._cmd_history) and tty:
                 try:
                     readline.read_history_file(self._cmd_history)
                 except IOError:
