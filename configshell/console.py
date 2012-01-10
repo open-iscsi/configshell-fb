@@ -22,7 +22,6 @@ import prefs
 import struct
 import textwrap
 from fcntl import ioctl
-import epydoc.markup.epytext
 from termios import TIOCGWINSZ, TCSADRAIN, tcsetattr, tcgetattr
 
 # avoid requiring epydoc at runtime
