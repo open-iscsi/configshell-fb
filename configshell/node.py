@@ -1714,18 +1714,14 @@ class ConfigNode(object):
         '''
         return self._configuration_groups
 
-    def list_group_params(self, group, param=None, writable=None, type=None):
+    def list_group_params(self, group, writable=None):
         '''
         Lists the parameters from group matching the optional param, writable
         and type supplied (if none is supplied, returns all group parameters.
         @param group: The group to list parameters of.
         @type group: str
-        @param param: Optional parameter name filter.
-        @type param: str
         @param writable: Optional writable flag filter.
         @type writable: bool
-        @param type: Optional type filter.
-        @type type: str
         '''
         if group not in self.list_config_groups():
             return []
@@ -1733,14 +1729,10 @@ class ConfigNode(object):
             params = []
             for p_name, p_def in self._configuration_groups[group].iteritems():
                 (p_type, p_description, p_writable) = p_def
-                if type is not None and p_type != type:
-                    pass
-                elif writable is not None and p_writable != writable:
-                    pass
-                elif param is not None and p_name != param:
-                    pass
-                else:
-                    params.append(p_name)
+                if writable is not None and p_writable != writable:
+                    continue
+                params.append(p_name)
+
             params.sort()
             return params
 
