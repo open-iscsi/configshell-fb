@@ -1712,7 +1712,7 @@ class ConfigNode(object):
         '''
         Lists the configuration group names.
         '''
-        return self._configuration_groups
+        return self._configuration_groups.keys()
 
     def list_group_params(self, group, writable=None):
         '''
