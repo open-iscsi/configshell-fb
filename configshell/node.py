@@ -801,8 +801,16 @@ class ConfigNode(object):
         else:
             summary += self.shell.con.render_text(']', styles=['bold'])
 
-        children = list(root.children)
-        children.sort(key=lambda child: str(child))
+        def sorting_keys(s):
+            m = re.search(r'(.*?)(\d+$)', str(s))
+            if m:
+                return (m.group(1), int(m.group(2)))
+            else:
+                return (str(s), None)
+
+        # Sort ending numbers numerically, so we get e.g. "lun1, lun2, lun10"
+        # instead of "lun1, lun10, lun2".
+        children = sorted(root.children, key=sorting_keys)
         line = ""
 
         for pipe in margin[:-1]:
