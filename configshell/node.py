@@ -808,7 +808,8 @@ class ConfigNode(object):
             else:
                 return (str(s), None)
 
-        # sort by ending number, then alpha
+        # Sort ending numbers numerically, so we get e.g. "lun1, lun2, lun10"
+        # instead of "lun1, lun10, lun2".
         children = sorted(root.children, key=lambda c: sorting_keys(c))
         line = ""
 
