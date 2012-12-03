@@ -801,8 +801,13 @@ class ConfigNode(object):
         else:
             summary += self.shell.con.render_text(']', styles=['bold'])
 
-        children = list(root.children)
-        children.sort(key=lambda child: str(child))
+        def ending_number(s):
+            m = re.search(r'\d+$', str(s))
+            if m:
+                return int(m.group())
+
+        # sort by ending number, then alpha
+        children = sorted(root.children, key=lambda c: (ending_number(c), str(c)))
         line = ""
 
         for pipe in margin[:-1]:
