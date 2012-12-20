@@ -80,7 +80,7 @@ class Log(object):
         '''
         date_fields = time.localtime()
         date = "%d-%02d-%02d %02d:%02d:%02d" \
-                % (date_fields[0], date_fields[2], date_fields[1],
+                % (date_fields[0], date_fields[1], date_fields[2],
                    date_fields[3], date_fields[4], date_fields[5])
 
         if self.prefs['logfile']:
