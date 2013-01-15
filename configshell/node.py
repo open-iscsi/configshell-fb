@@ -1086,7 +1086,10 @@ class ConfigNode(object):
                     if pos > 0:
                         content.set_focus(pos-1)
                 elif unicode(key) == 'down':
-                    content.set_focus(pos+1)
+                    try:
+                        content.set_focus(pos+1)
+                    except IndexError:
+                        pass
                 elif unicode(key) == 'enter':
                     raise Selected(pos)
 
