@@ -810,7 +810,7 @@ class ConfigNode(object):
 
         # Sort ending numbers numerically, so we get e.g. "lun1, lun2, lun10"
         # instead of "lun1, lun10, lun2".
-        children = sorted(root.children, key=lambda c: sorting_keys(c))
+        children = sorted(root.children, key=sorting_keys)
         line = ""
 
         for pipe in margin[:-1]:
