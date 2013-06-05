@@ -1159,6 +1159,7 @@ class ConfigNode(object):
                                   ===========
                                   ''')
             msg += self.get_command_description(topic)
+            msg += "\n"
             self.shell.con.epy_write(msg)
         else:
             self.shell.log.error("Cannot find help topic %s." % topic)
