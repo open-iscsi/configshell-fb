@@ -8,7 +8,7 @@ for building simple but nice CLI-based applications.
 
 configshell-fb development
 --------------------------
-configshell-fb is licensed under the Affero GPLv3. Contributions are welcome.
+configshell-fb is licensed under the Apache 2.0 license. Contributions are welcome.
 
 Since configshell-fb is used most often with targetcli-fb, the
 targetcli-fb mailing should be used for configshell-fb discussion.
