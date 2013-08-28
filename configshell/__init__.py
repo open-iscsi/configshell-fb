@@ -20,9 +20,3 @@ from console import Console
 from shell import ConfigShell
 from node import ConfigNode, ExecutionError
 from prefs import Prefs
-
-__version__ = 'GIT_VERSION'
-__author__ = "Jerome Martin <jxm@risingtidesystems.com>"
-__url__ = "http://www.risingtidesystems.com"
-__description__ = "A framework to implement simple but nice CLIs."
-__license__ = __doc__

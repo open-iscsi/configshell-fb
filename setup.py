@@ -16,25 +16,15 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import re
 from distutils.core import setup
-import configshell
 
-PKG = configshell
-VERSION = str(PKG.__version__)
-(AUTHOR, EMAIL) = re.match('^(.*?)\s*<(.*)>$', PKG.__author__).groups()
-URL = PKG.__url__
-LICENSE = PKG.__license__
-SCRIPTS = []
-DESCRIPTION = PKG.__description__
-
-setup(name=PKG.__name__,
-      description=DESCRIPTION,
-      version=VERSION,
-      author=AUTHOR,
-      author_email=EMAIL,
-      license=LICENSE,
-      url=URL,
-      scripts=SCRIPTS,
-      packages=[PKG.__name__],
-      package_data = {'':[]})
+setup(
+    name = 'configshell-fb',
+    version = 'v1.1.fb8',
+    description = 'A framework to implement simple but nice CLIs.',
+    license = 'Apache 2.0',
+    maintainer = 'Andy Grover',
+    maintainer_email = 'agrover@redhat.com',
+    url = 'http://github.com/agrover/configshell-fb',
+    packages = ['configshell'],
+    )
