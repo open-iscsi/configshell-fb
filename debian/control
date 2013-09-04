@@ -2,12 +2,12 @@ Source: configshell
 Section: python
 Priority: optional
 Maintainer: Jerome Martin <jxm@risingtidesystems.com>
-Build-Depends: debhelper(>= 7.0.1), python2.6, python-epydoc, python-simpleparse
+Build-Depends: debhelper(>= 7.0.1), python2.6
 Standards-Version: 3.8.1
 
 Package: python-configshell
 Architecture: all
-Depends: python (>= 2.6)|python2.6, python-epydoc, python-simpleparse, python-urwid (>=0.9.9)
+Depends: python (>= 2.6)|python2.6, python-epydoc, python-pyparsing, python-urwid (>=0.9.9)
 Suggests: configshell-doc
 Description: Framework to create CLI interfaces.
  .
