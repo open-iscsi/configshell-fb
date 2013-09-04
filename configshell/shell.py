@@ -17,8 +17,8 @@ under the License.
 
 import os
 import sys
-import simpleparse.parser
-import simpleparse.dispatchprocessor
+from pyparsing import Empty, Group, OneOrMore, Optional, ParseResults, Regex, Suppress, Word
+from pyparsing import alphanums
 
 import configshell.log as log
 import configshell.prefs as prefs
@@ -48,6 +48,12 @@ if sys.stdout.isatty():
     tty=True
 else:
     tty=False
+
+# Pyparsing helper to group the location of a token and its value
+# http://stackoverflow.com/questions/18706631/pyparsing-get-token-location-in-results-name
+locator = Empty().setParseAction(lambda s, l, t: l)
+def locatedExpr(expr):
+    return Group(locator('location') + expr('value'))
 
 class ConfigShell(object):
     '''
@@ -90,23 +96,6 @@ class ConfigShell(object):
     _current_token = ''
     _current_completions = []
     complete_key = 'tab'
-    grammar = \
-            r'''
-            <eol>        := '\n'
-            <space>      := ' '+
-            line         := (linepath)/(space?, command), parameters?, eol?
-            >linepath<   := space?, path, space?, command?
-            command      := [a-zA-Z0-9_]+
-            >parameters< := (space, kparam/pparam)+
-            pparam       := var
-            kparam       := keyword, '=', value
-            >keyword<    := [a-zA-Z0-9_\-]+
-            >value<      := var?
-            path         := bookmark/pathstd/[0-9]+/'..'/'.'/'*'
-            <pathstd>    := ([a-zA-Z0-9:_.-]*, '/', [a-zA-Z0-9:_./-]*, '*'?)
-            <var>        := [a-zA-Z0-9_\\+/.<>~@:-%]+
-            <bookmark>   := '@', var?
-            '''
 
     def __init__(self, preferences_dir=None):
         '''
@@ -118,7 +107,21 @@ class ConfigShell(object):
         self._root_node = None
         self._exit = False
 
-        self._parser = simpleparse.parser.Parser(self.grammar, root='line')
+        # Grammar of the command line
+        command = locatedExpr(Word(alphanums + '_'))('command')
+        var = Word(alphanums + '_\+/.<>~@:-%]')
+        value = var
+        keyword = Word(alphanums + '_\-')
+        kparam = locatedExpr(keyword + Suppress('=') + value)('kparams*')
+        pparam = locatedExpr(var)('pparams*')
+        parameter = kparam | pparam
+        parameters = OneOrMore(parameter)
+        bookmark = Regex('@([A-Za-z0-9:_.]|-)+')
+        pathstd = Regex('([A-Za-z0-9:_.]|-)*' + '/' + '([A-Za-z0-9:_./]|-)*') \
+                | '..' | '.'
+        path = locatedExpr(bookmark | pathstd | '*')('path')
+        parser = Optional(path) + Optional(command) + Optional(parameters)
+        self._parser = parser
 
         if tty:
             readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
@@ -676,7 +679,7 @@ class ConfigShell(object):
             self._completion_help_topic = ''
             self._current_parameter = ''
 
-            (result_trees, path, command, pparams, kparams) = \
+            (parse_results, path, command, pparams, kparams) = \
                     self._parse_cmdline(cmdline)
 
             beg = readline.get_begidx()
@@ -685,13 +688,17 @@ class ConfigShell(object):
                 # No text under the cursor, fake it so that the parser
                 # result_trees gives us a token name on a second parser call
                 self.log.debug("Faking text entry on commandline.")
-                result_trees = self._parse_cmdline(cmdline + 'x')[0]
+                parse_results = self._parse_cmdline(cmdline + 'x')[0]
                 end += 1
 
-            for tree in result_trees:
-                if beg == tree[1] and end == tree[2]:
-                    current_token = tree[0]
-                    break
+            if path and beg == parse_results.path.location:
+                current_token = 'path'
+            elif command and beg == parse_results.command.location:
+                current_token = 'command'
+            elif pparams and beg in [p.location for p in parse_results.pparams]:
+                current_token = 'pparam'
+            elif kparams and beg in [k.location for k in parse_results.kparams]:
+                current_token = 'kparam'
 
             self._current_completions = \
                     self._dispatch_completion(path, command,
@@ -825,41 +832,34 @@ class ConfigShell(object):
     def _parse_cmdline(self, line):
         '''
         Parses the command line entered by the user. This is a wrapper around
-        the actual simpleparse parsed that pre-chews the result trees to
+        the actual pyparsing parser that pre-chews the result trees to
         cleanly extract the tokens we care for (parameters, path, command).
         @param line: The command line to parse.
         @type line: str
         @return: (result_trees, path, command, pparams, kparams),
         pparams being positional parameters and kparams the keyword=value.
-        @rtype: (list of tuple, str, str, list, dict) For the exact
-        result_trees tuple format, c.f. the simpleparse documentation.
+        @rtype: (pyparsing.ParseResults, str, str, list, dict)
         '''
         self.log.debug("Parsing commandline.")
         path = ''
         command = ''
         pparams = []
         kparams = {}
-        (success, result_trees, next_character) = self._parser.parse(line)
-        if success:
-            self.log.debug(str(result_trees))
-            for tree in result_trees:
-                token = tree[0]
-                value = line[tree[1]:tree[2]]
-                self.log.debug("Found %s token %s." % (token, value))
-                if token == 'path':
-                    path = value
-                elif token == 'command':
-                    command = value
-                elif token == 'pparam':
-                    pparams.append(value)
-                elif token == 'kparam':
-                    (keyword, sep, value) = value.partition('=')
-                    kparams[keyword] = value
+
+        parse_results = self._parser.parseString(line)
+        if isinstance(parse_results.path, ParseResults):
+            path = parse_results.path.value
+        if isinstance(parse_results.command, ParseResults):
+            command = parse_results.command.value
+        if isinstance(parse_results.pparams, ParseResults):
+            pparams = [pparam.value for pparam in parse_results.pparams]
+        if isinstance(parse_results.kparams, ParseResults):
+            kparams = dict([kparam.value for kparam in parse_results.kparams])
 
         self.log.debug("Parse gave path='%s' command='%s' " % (path, command)
                        + "pparams=%s " % str(pparams)
                        + "kparams=%s" % str(kparams))
-        return (result_trees, path, command, pparams, kparams)
+        return (parse_results, path, command, pparams, kparams)
 
     def _execute_command(self, path, command, pparams, kparams):
         '''
