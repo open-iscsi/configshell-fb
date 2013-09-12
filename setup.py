@@ -20,7 +20,7 @@ from distutils.core import setup
 
 setup(
     name = 'configshell-fb',
-    version = 'v1.1.fb8',
+    version = '1.1.fb9',
     description = 'A framework to implement simple but nice CLIs.',
     license = 'Apache 2.0',
     maintainer = 'Andy Grover',
