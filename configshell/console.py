@@ -22,7 +22,6 @@ import prefs
 import struct
 import textwrap
 from fcntl import ioctl
-import epydoc.markup.epytext
 from termios import TIOCGWINSZ, TCSADRAIN, tcsetattr, tcgetattr
 
 # avoid requiring epydoc at runtime
@@ -54,6 +53,8 @@ class Console(object):
 
     _ansi_fgcolors = dict(zip(colors, range(30, 38)))
     _ansi_bgcolors = dict(zip(colors, range(40, 48)))
+
+    _epy_markup_re = re.compile("[A-Z]\{(.*?)\}")
 
     __borg_state = {}
 
@@ -162,16 +163,13 @@ class Console(object):
             dom_tree = epydoc.markup.epytext.parse(text, None)
         except NameError:
             # epydoc not installed, strip markup
-            dom_tree = text
-            dom_tree = dom_tree.replace("B{", "")
-            dom_tree = dom_tree.replace("I{", "")
-            dom_tree = dom_tree.replace("C{", "")
-            dom_tree = dom_tree.replace("}", "")
-            dom_tree += "\n"
+            text = "%s\n\n" % re.sub(self._epy_markup_re, r'\1', text)
         except:
             self.display(text)
             raise
-        text = self.render_domtree(dom_tree)
+        else:
+            text = self.render_domtree(dom_tree)
+
         # We need to remove the last line feed, but there might be
         # escape characters after it...
         clean_text = ''
@@ -404,9 +402,11 @@ class Console(object):
             text = self.render_text(
                 childstr, styles=['underline'], todefault=True)
         elif tree.tag == 'symbol':
-            text = '%s' \
-                    % epydoc.markup.epytext.SYMBOL_TO_PLAINTEXT.get(
-                        childstr, childstr)
+            try:
+                text = '%s' % epydoc.markup.epytext.SYMBOL_TO_PLAINTEXT.get(
+                    childstr, childstr)
+            except NameError:
+                pass
         elif tree.tag == 'graph':
             text = '<<%s graph: %s>>' \
                     % (variables[0], ', '.join(variables[1:]))

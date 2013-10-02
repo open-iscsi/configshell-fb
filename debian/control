@@ -7,8 +7,8 @@ Standards-Version: 3.8.1
 
 Package: python-configshell
 Architecture: all
-Depends: python (>= 2.6)|python2.6|python2.7, python-epydoc, python-simpleparse, python-urwid (>=0.9.9)
-Suggests: configshell-doc
+Depends: python (>= 2.6)|python2.6|python2.7, python-simpleparse, python-urwid (>=0.9.9)
+Suggests: configshell-doc, python-epydoc
 Description: Framework to create CLI interfaces.
  .
  This package contains the configshell library.
