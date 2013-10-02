@@ -1716,8 +1716,8 @@ class ConfigNode(object):
 
     def list_group_params(self, group, writable=None):
         '''
-        Lists the parameters from group matching the optional param, writable
-        and type supplied (if none is supplied, returns all group parameters.
+        Lists the parameters from group that are either writable, read-only or
+        both.
         @param group: The group to list parameters of.
         @type group: str
         @param writable: Optional writable flag filter.
