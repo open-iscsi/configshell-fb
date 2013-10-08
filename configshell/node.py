@@ -450,7 +450,7 @@ class ConfigNode(object):
         else:
             try:
                 value = type_method(ui_value)
-            except ValueError, msg:
+            except ValueError as msg:
                 raise ExecutionError(msg)
             else:
                 return value
@@ -509,7 +509,7 @@ class ConfigNode(object):
                     if p_def['writable']:
                         try:
                             value = type_method(value)
-                        except ValueError, msg:
+                        except ValueError as msg:
                             self.shell.log.error("Not setting %s! %s"
                                                  % (param, msg))
                         else:
@@ -698,7 +698,7 @@ class ConfigNode(object):
         '''
         try:
             target = self.get_node(path)
-        except ValueError, msg:
+        except ValueError as msg:
             self.shell.log.error(msg)
             return
 
@@ -1035,7 +1035,7 @@ class ConfigNode(object):
         # Normal path
         try:
             target_node = self.get_node(path)
-        except ValueError, msg:
+        except ValueError as msg:
             self.shell.log.error(msg)
             return None
         else:
@@ -1097,7 +1097,7 @@ class ConfigNode(object):
         loop = urwid.MainLoop(frame, palette, input_filter=handle_input)
         try:
             loop.run()
-        except Selected, pos:
+        except Selected as pos:
             return int(str(pos))
 
     def ui_complete_cd(self, parameters, text, current_param):
@@ -1415,7 +1415,7 @@ class ConfigNode(object):
         try:
             self.assert_params(method, pparams, kparams)
             result = method(*pparams, **kparams)
-        except ExecutionError, msg:
+        except ExecutionError as msg:
             self.shell.log.error(msg)
         else:
             return result
