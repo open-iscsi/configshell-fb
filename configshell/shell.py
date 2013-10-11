@@ -821,7 +821,7 @@ class ConfigShell(object):
             if self._save_history:
                 try:
                     readline.write_history_file(self._cmd_history)
-                except IOError, msg:
+                except IOError as msg:
                     self.log.warning(
                         "Cannot write to command history file %s." \
                         % self._cmd_history)
@@ -895,7 +895,7 @@ class ConfigShell(object):
 
         try:
             target = self._current_node.get_node(path)
-        except ValueError, msg:
+        except ValueError as msg:
             self.log.error(msg)
         else:
             result = None
@@ -945,7 +945,7 @@ class ConfigShell(object):
         try:
             script_fd = open(script_path, 'r')
             self.run_stdin(script_fd, exit_on_error)
-        except IOError, msg:
+        except IOError as msg:
             raise IOError(msg)
         finally:
             script_fd.close()
@@ -963,7 +963,7 @@ class ConfigShell(object):
         for cmdline in file_descriptor:
             try:
                 self.run_cmdline(cmdline)
-            except Exception, msg:
+            except Exception as msg:
                 self.log.error(msg)
                 if exit_on_error is True:
                     self.log.exception("Aborting run on error.")
