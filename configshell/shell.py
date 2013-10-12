@@ -125,6 +125,8 @@ class ConfigShell(object):
 
         if tty:
             readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
+            readline.set_completion_display_matches_hook(
+                self._display_completions_python)
 
         self.log = log.Log()
 
@@ -175,44 +177,10 @@ class ConfigShell(object):
 
     # Private methods
 
-    def _set_readline_display_matches(self):
-        '''
-        In order to stay compatible with python versions < 2.6,
-        we are not using readline.set_completion_display_matches_hook() but
-        instead use ctypes there to bind to the C readline hook if needed.
-        This hooks a callback function to display readline completions.
-        '''
-        if 'set_completion_display_matches_hook' in dir(readline):
-            readline.set_completion_display_matches_hook(
-                self._display_completions_python)
-        else:
-            from ctypes import cdll, CFUNCTYPE, POINTER
-            from ctypes import c_char_p, c_int, c_void_p, cast
-            libreadline = None
-            try:
-                libreadline = cdll.LoadLibrary('libreadline.so')
-            except OSError:
-                try:
-                    libreadline = cdll.LoadLibrary('libreadline.so.5')
-                except OSError:
-                    try:
-                        libreadline = cdll.LoadLibrary('libreadline.so.6')
-                    except OSError:
-                        self.log.critical(
-                            "Could not find readline shared library.")
-            if libreadline:
-                completion_func_type = \
-                        CFUNCTYPE(None, POINTER(c_char_p), c_int, c_int)
-                hook = completion_func_type(self._display_completions)
-                ptr = c_void_p.in_dll(libreadline,
-                                      'rl_completion_display_matches_hook')
-                ptr.value = cast(hook, c_void_p).value
-
     def _display_completions_python(self, substitution, matches, max_length):
         '''
-        A wrapper to be used with python>=2.6 readline display completion hook.
+        Display completion hook for readline
         '''
-        self.log.debug("Using python >=2.6 readline display hook.")
         matches = [substitution] + matches
         self._display_completions(matches, len(matches)-1, max_length)
 
@@ -671,8 +639,6 @@ class ConfigShell(object):
         @returns: The next possible completion for text.
         @rtype: str
         '''
-        self._set_readline_display_matches()
-
         if state == 0:
             cmdline = readline.get_line_buffer()
             self._current_completions = []
