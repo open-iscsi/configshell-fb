@@ -125,6 +125,8 @@ class ConfigShell(object):
 
         if tty:
             readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
+            readline.set_completion_display_matches_hook(
+                self._display_completions_python)
 
         self.log = log.Log()
 
@@ -175,44 +177,10 @@ class ConfigShell(object):
 
     # Private methods
 
-    def _set_readline_display_matches(self):
-        '''
-        In order to stay compatible with python versions < 2.6,
-        we are not using readline.set_completion_display_matches_hook() but
-        instead use ctypes there to bind to the C readline hook if needed.
-        This hooks a callback function to display readline completions.
-        '''
-        if 'set_completion_display_matches_hook' in dir(readline):
-            readline.set_completion_display_matches_hook(
-                self._display_completions_python)
-        else:
-            from ctypes import cdll, CFUNCTYPE, POINTER
-            from ctypes import c_char_p, c_int, c_void_p, cast
-            libreadline = None
-            try:
-                libreadline = cdll.LoadLibrary('libreadline.so')
-            except OSError:
-                try:
-                    libreadline = cdll.LoadLibrary('libreadline.so.5')
-                except OSError:
-                    try:
-                        libreadline = cdll.LoadLibrary('libreadline.so.6')
-                    except OSError:
-                        self.log.critical(
-                            "Could not find readline shared library.")
-            if libreadline:
-                completion_func_type = \
-                        CFUNCTYPE(None, POINTER(c_char_p), c_int, c_int)
-                hook = completion_func_type(self._display_completions)
-                ptr = c_void_p.in_dll(libreadline,
-                                      'rl_completion_display_matches_hook')
-                ptr.value = cast(hook, c_void_p).value
-
     def _display_completions_python(self, substitution, matches, max_length):
         '''
-        A wrapper to be used with python>=2.6 readline display completion hook.
+        Display completion hook for readline
         '''
-        self.log.debug("Using python >=2.6 readline display hook.")
         matches = [substitution] + matches
         self._display_completions(matches, len(matches)-1, max_length)
 
@@ -331,7 +299,7 @@ class ConfigShell(object):
         y_pos = self.con.get_cursor_xy()[1]
         self.con.set_cursor_xy(x_orig, y_pos)
 
-    def _complete_token_command(self, text, path, command, pparams, kparams):
+    def _complete_token_command(self, text, path, command):
         '''
         Completes a partial command token, which could also be the beginning
         of a path.
@@ -339,10 +307,6 @@ class ConfigShell(object):
         @type path: str
         @param command: The command (if any) found by the parser.
         @type command: str
-        @param pparams: Positional parameters from commandline.
-        @type pparams: list of str
-        @param kparams: Keyword parameters from commandline.
-        @type kparams: dict of str:str
         @param text: Current text being typed by the user.
         @type text: str
         @return: Possible completions for the token.
@@ -407,17 +371,9 @@ class ConfigShell(object):
         # We are done
         return completions
 
-    def _complete_token_path(self, text, path, command, pparams, kparams):
+    def _complete_token_path(self, text):
         '''
         Completes a partial path token.
-        @param path: Path of the target ConfigNode.
-        @type path: str
-        @param command: The command (if any) found by the parser.
-        @type command: str
-        @param pparams: Positional parameters from commandline.
-        @type pparams: list of str
-        @param kparams: Keyword parameters from commandline.
-        @type kparams: dict of str:str
         @param text: Current text being typed by the user.
         @type text: str
         @return: Possible completions for the token.
@@ -671,8 +627,6 @@ class ConfigShell(object):
         @returns: The next possible completion for text.
         @rtype: str
         '''
-        self._set_readline_display_matches()
-
         if state == 0:
             cmdline = readline.get_line_buffer()
             self._current_completions = []
@@ -763,12 +717,9 @@ class ConfigShell(object):
 
 
         if current_token == 'command':
-            completions = self._complete_token_command(text, cpl_path, command,
-                                                 pparams, kparams)
+            completions = self._complete_token_command(text, cpl_path, command)
         elif current_token == 'path':
-            completions = \
-                    self._complete_token_path(text, path, command,
-                                              pparams, kparams)
+            completions = self._complete_token_path(text)
         elif current_token == 'pparam':
             completions = \
                     self._complete_token_pparam(text, cpl_path, command,
@@ -821,7 +772,7 @@ class ConfigShell(object):
             if self._save_history:
                 try:
                     readline.write_history_file(self._cmd_history)
-                except IOError as msg:
+                except IOError:
                     self.log.warning(
                         "Cannot write to command history file %s." \
                         % self._cmd_history)
