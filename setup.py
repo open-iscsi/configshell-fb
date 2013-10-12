@@ -16,7 +16,7 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name = 'configshell-fb',
@@ -27,4 +27,5 @@ setup(
     maintainer_email = 'agrover@redhat.com',
     url = 'http://github.com/agrover/configshell-fb',
     packages = ['configshell'],
+    use_2to3 = True,
     )
