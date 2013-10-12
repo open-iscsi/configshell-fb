@@ -299,7 +299,7 @@ class ConfigShell(object):
         y_pos = self.con.get_cursor_xy()[1]
         self.con.set_cursor_xy(x_orig, y_pos)
 
-    def _complete_token_command(self, text, path, command, pparams, kparams):
+    def _complete_token_command(self, text, path, command):
         '''
         Completes a partial command token, which could also be the beginning
         of a path.
@@ -307,10 +307,6 @@ class ConfigShell(object):
         @type path: str
         @param command: The command (if any) found by the parser.
         @type command: str
-        @param pparams: Positional parameters from commandline.
-        @type pparams: list of str
-        @param kparams: Keyword parameters from commandline.
-        @type kparams: dict of str:str
         @param text: Current text being typed by the user.
         @type text: str
         @return: Possible completions for the token.
@@ -375,17 +371,9 @@ class ConfigShell(object):
         # We are done
         return completions
 
-    def _complete_token_path(self, text, path, command, pparams, kparams):
+    def _complete_token_path(self, text):
         '''
         Completes a partial path token.
-        @param path: Path of the target ConfigNode.
-        @type path: str
-        @param command: The command (if any) found by the parser.
-        @type command: str
-        @param pparams: Positional parameters from commandline.
-        @type pparams: list of str
-        @param kparams: Keyword parameters from commandline.
-        @type kparams: dict of str:str
         @param text: Current text being typed by the user.
         @type text: str
         @return: Possible completions for the token.
@@ -729,12 +717,9 @@ class ConfigShell(object):
 
 
         if current_token == 'command':
-            completions = self._complete_token_command(text, cpl_path, command,
-                                                 pparams, kparams)
+            completions = self._complete_token_command(text, cpl_path, command)
         elif current_token == 'path':
-            completions = \
-                    self._complete_token_path(text, path, command,
-                                              pparams, kparams)
+            completions = self._complete_token_path(text)
         elif current_token == 'pparam':
             completions = \
                     self._complete_token_pparam(text, cpl_path, command,
@@ -787,7 +772,7 @@ class ConfigShell(object):
             if self._save_history:
                 try:
                     readline.write_history_file(self._cmd_history)
-                except IOError as msg:
+                except IOError:
                     self.log.warning(
                         "Cannot write to command history file %s." \
                         % self._cmd_history)
