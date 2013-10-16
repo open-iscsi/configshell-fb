@@ -2,7 +2,7 @@ Source: configshell-fb
 Section: python
 Priority: optional
 Maintainer: Andy Grover <grover@groveronline.com>
-Build-Depends: debhelper(>= 7.0.1), python (>= 2.6)|python2.6
+Build-Depends: debhelper(>= 7.0.1), python (>= 2.6)|python2.6, python-setuptools
 Standards-Version: 3.8.1
 
 Package: python-configshell-fb

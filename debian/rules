@@ -5,6 +5,8 @@ install_dir = debian/tmp
 setup       = /usr/bin/python ./setup.py --quiet
 name 		= configshell-fb
 
+export PYTHONPATH = $$PYTHONPATH:./$(install_dir)/lib/configshell/
+
 binary: binary-indep
 
 binary-arch:
@@ -31,6 +33,7 @@ install: build
 build: build-stamp
 build-stamp: 
 	dh_testdir
+	mkdir -p $(install_dir)/lib/configshell
 	$(setup) build --build-base $(build_dir) install --no-compile --install-purelib $(install_dir)/lib/configshell --install-scripts $(install_dir)/bin
 	echo "2.6" > $(install_dir)/lib/configshell/.version
 	mkdir -p $(build_dir) doc/
