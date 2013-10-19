@@ -2,15 +2,16 @@ Source: configshell-fb
 Section: python
 Priority: optional
 Maintainer: Andy Grover <grover@groveronline.com>
-Build-Depends: debhelper(>= 7.0.1), python (>= 2.6), python-setuptools, python-epydoc, python-pyparsing
-Standards-Version: 3.8.1
+Build-Depends: debhelper(>= 8), python (>=2.6.6-3~), python-setuptools, python-epydoc, python-pyparsing
+Standards-Version: 3.9.4
+X-Python-Version: >= 2.6
 
 Package: python-configshell-fb
 Architecture: all
-Depends: python (>= 2.6), python-pyparsing, python-urwid (>=0.9.9)
+Depends: ${python:Depends}, ${misc:Depends}, python-pyparsing, python-urwid (>=0.9.9)
 Suggests: configshell-fb-doc
 Conflicts: configshell
-Provides: configshell
+Provides: ${python:Provides}
 Description: Framework to create CLI interfaces.
  .
  This package contains the configshell library (free branch).
