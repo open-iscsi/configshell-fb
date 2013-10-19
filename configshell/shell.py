@@ -742,7 +742,7 @@ class ConfigShell(object):
         prompt_length = self.prefs['prompt_length']
 
         if prompt_length and prompt_length < len(prompt_path):
-            half = (prompt_length-3)/2
+            half = (prompt_length - 3) // 2
             prompt_path = "%s...%s" \
                     % (prompt_path[:half], prompt_path[-half:])
 
