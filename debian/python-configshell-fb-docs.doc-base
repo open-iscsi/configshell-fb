@@ -1,0 +1,9 @@
+Document: python-configshell-fb
+Title: python-configshell documentation
+Author: Jerome Martin <jxm@risingtidesystems.com>
+Abstract: configshell is a library which is used to create cli interfaces
+Section: Programming/Python
+
+Format: HTML
+Index: /usr/share/doc/python-configshell-fb-docs/html/index.html
+Files: /usr/share/doc/python-configshell-fb-docs/html/*.html
