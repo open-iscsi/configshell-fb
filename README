@@ -1,11 +1,17 @@
-ConfigShell Community Edition is a python library that provides a framework
-for building simple but nice CLI-based applications.
+ConfigShell is a Python library that provides a framework for building
+simple but nice CLI-based applications for the LIO Linux SCSI Target,
+and its third-party target fabric modules and backend storage objects.
 
-For more information, see the configshell API reference, available in both html
-and pdf formats as a separate package.
+RTSlib was developed by Datera, Inc. (www.daterainc.com).
 
-The latest version of this program might be obtained at:
-http://www.risingtidesystems.com/git/
+For more information, please see the targetcli User's Guide at:
+
+http://linux-iscsi.org/wiki/targetcli
+
+and the RTSlib API Reference Guide at:
+
+http://linux-iscsi.org/Doc/rtslib/html
+http://linux-iscsi.org/Doc/rtslib/rtslib-API-reference.pdf
 
 To run the example shell from this directory use:
 PYTHONPATH=. ./examples/myshell
