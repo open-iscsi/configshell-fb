@@ -638,14 +638,20 @@ class ConfigShell(object):
 
             beg = readline.get_begidx()
             end = readline.get_endidx()
+            current_token = None
             if beg == end:
                 # No text under the cursor, fake it so that the parser
                 # result_trees gives us a token name on a second parser call
                 self.log.debug("Faking text entry on commandline.")
                 parse_results = self._parse_cmdline(cmdline + 'x')[0]
-                end += 1
 
-            if path and beg == parse_results.path.location:
+                if parse_results.command.value == 'x':
+                    current_token = 'command'
+                elif 'x' in [x.value for x in parse_results.pparams]:
+                    current_token = 'pparam'
+                elif 'x' in [x.value for x in parse_results.kparams]:
+                    current_token = 'kparam'
+            elif path and beg == parse_results.path.location:
                 current_token = 'path'
             elif command and beg == parse_results.command.location:
                 current_token = 'command'
