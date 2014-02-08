@@ -2,7 +2,7 @@ ConfigShell is a Python library that provides a framework for building
 simple but nice CLI-based applications for the LIO Linux SCSI Target,
 and its third-party target fabric modules and backend storage objects.
 
-RTSlib was developed by Datera, Inc. (www.daterainc.com).
+RTSlib was developed by Datera, Inc. (www.datera.io).
 
 For more information, please see the targetcli User's Guide at:
 
