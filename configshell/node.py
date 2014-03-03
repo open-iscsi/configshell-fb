@@ -486,48 +486,46 @@ class ConfigNode(object):
                                      %s
                                      ''' % ' '.join(self.list_config_groups()))
         elif not parameter:
-            if group in self.list_config_groups():
-                section = "%s CONFIG GROUP" % group.upper()
-                underline1 = ''.ljust(len(section), '=')
-                parameters = ''
-                for p_name in self.list_group_params(group, writable=True):
-                    p_def = self.get_group_param(group, p_name)
-                    type_method = self.get_type_method(p_def['type'])
-                    parameter = "%s=I{%s}" % (p_def['name'], p_def['type'])
-                    underline2 = ''.ljust(len(parameter), '-')
-                    parameters += '%s\n%s\n%s\n\n' \
-                            % (parameter, underline2, p_def['description'])
-                self.shell.con.epy_write('''%s\n%s\n%s\n'''
-                                         % (section, underline1, parameters))
-            else:
-                self.shell.log.error("Unknown configuration group: %s" % group)
-        elif group in self.list_config_groups():
-            for param, value in parameter.iteritems():
-                if param in self.list_group_params(group):
-                    p_def = self.get_group_param(group, param)
-                    type_method = self.get_type_method(p_def['type'])
-                    if p_def['writable']:
-                        try:
-                            value = type_method(value)
-                        except ValueError as msg:
-                            self.shell.log.error("Not setting %s! %s"
-                                                 % (param, msg))
-                        else:
-                            group_setter = self.get_group_setter(group)
-                            group_setter(param, value)
-                            group_getter = self.get_group_getter(group)
-                            value = group_getter(param)
-                            value = type_method(value, reverse=True)
-                            self.shell.con.display("Parameter %s is now '%s'."
-                                                   % (param, value))
-                    else:
-                        self.shell.log.error("Parameter %s is read-only."
-                                             % param)
-                else:
-                    self.shell.log.error("Unknown parameter %s in group '%s'."
-                                         % (param, group))
-        else:
-            self.shell.log.error("Unknown configuration group: %s" % group)
+            if group not in self.list_config_groups():
+                raise ExecutionError("Unknown configuration group: %s" % group)
+
+            section = "%s CONFIG GROUP" % group.upper()
+            underline1 = ''.ljust(len(section), '=')
+            parameters = ''
+            for p_name in self.list_group_params(group, writable=True):
+                p_def = self.get_group_param(group, p_name)
+                type_method = self.get_type_method(p_def['type'])
+                parameter = "%s=I{%s}" % (p_def['name'], p_def['type'])
+                underline2 = ''.ljust(len(parameter), '-')
+                parameters += '%s\n%s\n%s\n\n' \
+                        % (parameter, underline2, p_def['description'])
+            self.shell.con.epy_write('''%s\n%s\n%s\n'''
+                                     % (section, underline1, parameters))
+
+        elif group not in self.list_config_groups():
+            raise ExecutionError("Unknown configuration group: %s" % group)
+
+        for param, value in parameter.iteritems():
+            if param not in self.list_group_params(group):
+                raise ExecutionError("Unknown parameter %s in group '%s'."
+                                     % (param, group))
+
+            p_def = self.get_group_param(group, param)
+            type_method = self.get_type_method(p_def['type'])
+            if not p_def['writable']:
+                raise ExecutionError("Parameter %s is read-only." % param)
+
+            try:
+                value = type_method(value)
+            except ValueError as msg:
+                raise ExecutionError("Not setting %s! %s" % (param, msg))
+
+            group_setter = self.get_group_setter(group)
+            group_setter(param, value)
+            group_getter = self.get_group_getter(group)
+            value = group_getter(param)
+            value = type_method(value, reverse=True)
+            self.shell.con.display("Parameter %s is now '%s'." % (param, value))
 
     def ui_complete_set(self, parameters, text, current_param):
         '''
@@ -596,48 +594,49 @@ class ConfigNode(object):
                                      %s
                                      ''' % ' '.join(self.list_config_groups()))
         elif not parameter:
-            if group in self.list_config_groups():
-                section = "%s CONFIG GROUP" % group.upper()
-                underline1 = ''.ljust(len(section), '=')
-                parameters = ''
-                params = [self.get_group_param(group, p_name)
-                          for p_name in self.list_group_params(group)]
-                for p_def in params:
-                    group_getter = self.get_group_getter(group)
-                    value = group_getter(p_def['name'])
-                    type_method = self.get_type_method(p_def['type'])
-                    value = type_method(value, reverse=True)
-                    parameter = "%s=%s" % (p_def['name'], value)
-                    if p_def['writable'] is False:
-                        parameter += " [ro]"
-                    underline2 = ''.ljust(len(parameter), '-')
-                    parameters += '%s\n%s\n%s\n\n' \
-                            % (parameter, underline2, p_def['description'])
+            if group not in self.list_config_groups():
+                raise ExecutionError("Unknown configuration group: %s" % group)
 
-                self.shell.con.epy_write('''%s\n%s\n%s\n'''
-                                         % (section, underline1, parameters))
+            section = "%s CONFIG GROUP" % group.upper()
+            underline1 = ''.ljust(len(section), '=')
+            parameters = ''
+            params = [self.get_group_param(group, p_name)
+                      for p_name in self.list_group_params(group)]
+            for p_def in params:
+                group_getter = self.get_group_getter(group)
+                value = group_getter(p_def['name'])
+                type_method = self.get_type_method(p_def['type'])
+                value = type_method(value, reverse=True)
+                parameter = "%s=%s" % (p_def['name'], value)
+                if p_def['writable'] is False:
+                    parameter += " [ro]"
+                underline2 = ''.ljust(len(parameter), '-')
+                parameters += '%s\n%s\n%s\n\n' \
+                        % (parameter, underline2, p_def['description'])
+
+            self.shell.con.epy_write('''%s\n%s\n%s\n'''
+                                     % (section, underline1, parameters))
+
+        elif group not in self.list_config_groups():
+            raise ExecutionError("Unknown configuration group: %s" % group)
+
+        for param in parameter:
+            if param not in self.list_group_params(group):
+                raise ExecutionError("No parameter '%s' in group '%s'."
+                                     % (param, group))
+
+            self.shell.log.debug("About to get the parameter's value.")
+            group_getter = self.get_group_getter(group)
+            value = group_getter(param)
+            p_def = self.get_group_param(group, param)
+            type_method = self.get_type_method(p_def['type'])
+            value = type_method(value, reverse=True)
+            if p_def['writable']:
+                writable = ""
             else:
-                self.shell.log.error("Unknown configuration group: %s" % group)
-        elif group in self.list_config_groups():
-            for param in parameter:
-                if param in self.list_group_params(group):
-                    self.shell.log.debug("About to get the parameter's value.")
-                    group_getter = self.get_group_getter(group)
-                    value = group_getter(param)
-                    p_def = self.get_group_param(group, param)
-                    type_method = self.get_type_method(p_def['type'])
-                    value = type_method(value, reverse=True)
-                    if p_def['writable']:
-                        writable = ""
-                    else:
-                        writable = "[ro]"
-                    self.shell.con.display("%s=%s %s"
-                                           % (param, value, writable))
-                else:
-                    self.shell.log.error("No parameter '%s' in group '%s'."
-                                         % (param, group))
-        else:
-            self.shell.log.error("Unknown configuration group: %s" % group)
+                writable = "[ro]"
+            self.shell.con.display("%s=%s %s"
+                                   % (param, value, writable))
 
     def ui_complete_get(self, parameters, text, current_param):
         '''
@@ -699,20 +698,19 @@ class ConfigNode(object):
         try:
             target = self.get_node(path)
         except ValueError as msg:
-            self.shell.log.error(msg)
-            return
+            raise ExecutionError(str(msg))
 
         if depth is None:
             depth = self.shell.prefs['tree_max_depth']
         try:
             depth = int(depth)
         except ValueError:
-            self.shell.log.error('The tree depth must be a number.')
-        else:
-            if depth == 0:
-                depth = None
-            tree = self._render_tree(target, depth=depth)
-            self.shell.con.display(tree)
+            raise ExecutionError('The tree depth must be a number.')
+
+        if depth == 0:
+            depth = None
+        tree = self._render_tree(target, depth=depth)
+        self.shell.con.display(tree)
 
     def _render_tree(self, root, margin=None, depth=None, do_list=False):
         '''
@@ -1036,21 +1034,20 @@ class ConfigNode(object):
         try:
             target_node = self.get_node(path)
         except ValueError as msg:
-            self.shell.log.error(msg)
-            return None
-        else:
-            index = self.shell.prefs['path_history_index']
-            if target_node.path != self.shell.prefs['path_history'][index]:
-                # Truncate the hostory to retain current path as last one
-                self.shell.prefs['path_history'] = \
-                        self.shell.prefs['path_history'][:index+1]
-                # Append the new path and update the index
-                self.shell.prefs['path_history'].append(target_node.path)
-                self.shell.prefs['path_history_index'] = index + 1
-            self.shell.log.debug("After cd, path history is: %s, index is %d"
-                                 % (str(self.shell.prefs['path_history']),
-                                    self.shell.prefs['path_history_index']))
-            return target_node
+            raise ExecutionError(str(msg))
+
+        index = self.shell.prefs['path_history_index']
+        if target_node.path != self.shell.prefs['path_history'][index]:
+            # Truncate the hostory to retain current path as last one
+            self.shell.prefs['path_history'] = \
+                    self.shell.prefs['path_history'][:index+1]
+            # Append the new path and update the index
+            self.shell.prefs['path_history'].append(target_node.path)
+            self.shell.prefs['path_history_index'] = index + 1
+        self.shell.log.debug("After cd, path history is: %s, index is %d"
+                             % (str(self.shell.prefs['path_history']),
+                                self.shell.prefs['path_history_index']))
+        return target_node
 
     def _lines_walker(self, lines, start_pos):
         '''
@@ -1136,33 +1133,34 @@ class ConfigNode(object):
             for command in commands:
                 msg += "  - %s\n" % self.get_command_syntax(command)[0]
             self.shell.con.epy_write(msg)
-        elif topic in commands:
-            syntax, comments, defaults = self.get_command_syntax(topic)
-            msg = self.shell.con.dedent('''
-                                 SYNTAX
-                                 ======
-                                 %s
 
-                                 ''' % syntax)
-            for comment in comments:
-                msg += comment + '\n'
+        elif topic not in commands:
+            raise ExecutionError("Cannot find help topic %s." % topic)
 
-            if defaults:
-                msg += self.shell.con.dedent('''
-                                      DEFAULT VALUES
-                                      ==============
-                                      %s
+        syntax, comments, defaults = self.get_command_syntax(topic)
+        msg = self.shell.con.dedent('''
+                             SYNTAX
+                             ======
+                             %s
 
-                                      ''' % defaults)
+                             ''' % syntax)
+        for comment in comments:
+            msg += comment + '\n'
+
+        if defaults:
             msg += self.shell.con.dedent('''
-                                  DESCRIPTION
-                                  ===========
-                                  ''')
-            msg += self.get_command_description(topic)
-            msg += "\n"
-            self.shell.con.epy_write(msg)
-        else:
-            self.shell.log.error("Cannot find help topic %s." % topic)
+                                  DEFAULT VALUES
+                                  ==============
+                                  %s
+
+                                  ''' % defaults)
+        msg += self.shell.con.dedent('''
+                              DESCRIPTION
+                              ===========
+                              ''')
+        msg += self.get_command_description(topic)
+        msg += "\n"
+        self.shell.con.epy_write(msg)
 
     def ui_complete_help(self, parameters, text, current_param):
         '''
@@ -1234,27 +1232,26 @@ class ConfigNode(object):
         '''
         if action == 'add' and bookmark:
             if bookmark in self.shell.prefs['bookmarks']:
-                self.shell.log.error("Bookmark %s already exists." % bookmark)
-            else:
-                self.shell.prefs['bookmarks'][bookmark] = self.path
-                # No way Prefs is going to account for that :-(
-                self.shell.prefs.save()
-                self.shell.log.info("Bookmarked %s as %s."
-                                    % (self.path, bookmark))
+                raise ExecutionError("Bookmark %s already exists." % bookmark)
+
+            self.shell.prefs['bookmarks'][bookmark] = self.path
+            # No way Prefs is going to account for that :-(
+            self.shell.prefs.save()
+            self.shell.log.info("Bookmarked %s as %s."
+                                % (self.path, bookmark))
         elif action == 'del' and bookmark:
-            if bookmark in self.shell.prefs['bookmarks']:
-                del self.shell.prefs['bookmarks'][bookmark]
-                # No way Prefs is going to account for that deletion
-                self.shell.prefs.save()
-                self.shell.log.info("Deleted bookmark %s." % bookmark)
-            else:
-                self.shell.log.error("No such bookmark %s." % bookmark)
+            if bookmark not in self.shell.prefs['bookmarks']:
+                raise ExecutionError("No such bookmark %s." % bookmark)
+
+            del self.shell.prefs['bookmarks'][bookmark]
+            # No way Prefs is going to account for that deletion
+            self.shell.prefs.save()
+            self.shell.log.info("Deleted bookmark %s." % bookmark)
         elif action == 'go' and bookmark:
-            if bookmark in self.shell.prefs['bookmarks']:
-                return self.ui_command_cd(
-                    self.shell.prefs['bookmarks'][bookmark])
-            else:
-                self.shell.log.error("No such bookmark %s." % bookmark)
+            if bookmark not in self.shell.prefs['bookmarks']:
+                raise ExecutionError("No such bookmark %s." % bookmark)
+            return self.ui_command_cd(
+                self.shell.prefs['bookmarks'][bookmark])
         elif action == 'show':
             bookmarks = self.shell.con.dedent('''
                                               BOOKMARKS
@@ -1272,7 +1269,7 @@ class ConfigNode(object):
                     bookmarks += "%s\n%s\n%s\n\n" % (bookmark, underline, path)
             self.shell.con.epy_write(bookmarks)
         else:
-            self.shell.log.error("Syntax error, see 'help bookmarks'.")
+            raise ExecutionError("Syntax error, see 'help bookmarks'.")
 
     def ui_complete_bookmarks(self, parameters, text, current_param):
         '''
@@ -1409,16 +1406,10 @@ class ConfigNode(object):
         if command in self.list_commands():
             method = self.get_command_method(command)
         else:
-            self.shell.log.error("Command not found %s" % command)
-            return
+            raise ExecutionError("Command not found %s" % command)
 
-        try:
-            self.assert_params(method, pparams, kparams)
-            result = method(*pparams, **kparams)
-        except ExecutionError as msg:
-            self.shell.log.error(msg)
-        else:
-            return result
+        self.assert_params(method, pparams, kparams)
+        return method(*pparams, **kparams)
 
     def assert_params(self, method, pparams, kparams):
         '''

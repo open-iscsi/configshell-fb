@@ -853,24 +853,24 @@ class ConfigShell(object):
         try:
             target = self._current_node.get_node(path)
         except ValueError as msg:
-            self.log.error(msg)
+            raise ExecutionError(str(msg))
+
+        result = None
+        if not iterall:
+            targets = [target]
         else:
-            result = None
-            if not iterall:
-                targets = [target]
-            else:
-                targets = target.children
-            for target in targets:
-                if iterall:
-                    self.con.display("[%s]" % target.path)
-                result = target.execute_command(command, pparams, kparams)
-            self.log.debug("Command execution returned %r" % result)
-            if isinstance(result, ConfigNode):
-                self._current_node = result
-            elif result == 'EXIT':
-                self._exit = True
-            elif result is not None:
-                raise ExecutionError("Unexpected result: %r" % result)
+            targets = target.children
+        for target in targets:
+            if iterall:
+                self.con.display("[%s]" % target.path)
+            result = target.execute_command(command, pparams, kparams)
+        self.log.debug("Command execution returned %r" % result)
+        if isinstance(result, ConfigNode):
+            self._current_node = result
+        elif result == 'EXIT':
+            self._exit = True
+        elif result is not None:
+            raise ExecutionError("Unexpected result: %r" % result)
 
     # Public methods
 
@@ -923,10 +923,9 @@ class ConfigShell(object):
             except Exception as msg:
                 self.log.error(msg)
                 if exit_on_error is True:
-                    self.log.exception("Aborting run on error.")
-                    break
-                else:
-                    self.log.exception("Keep running after an error.")
+                    raise ExecutionError("Aborting run on error.")
+
+                self.log.exception("Keep running after an error.")
 
     def run_interactive(self):
         '''
@@ -942,17 +941,16 @@ class ConfigShell(object):
                     self._current_node = self._root_node
                 else:
                     self._current_node = target
-        try:
-            old_completer = readline.get_completer()
-            self._cli_loop()
-        except KeyboardInterrupt:
-            self.con.raw_write('\n')
-            self.run_interactive()
-        except Exception:
-            self.log.exception()
-            self.run_interactive()
-        finally:
-            readline.set_completer(old_completer)
+
+        while True:
+            try:
+                old_completer = readline.get_completer()
+                self._cli_loop()
+                break
+            except KeyboardInterrupt:
+                self.con.raw_write('\n')
+            finally:
+                readline.set_completer(old_completer)
 
     def attach_root_node(self, root_node):
         '''
