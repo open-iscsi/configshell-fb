@@ -20,6 +20,7 @@ import time
 import prefs
 import inspect
 import console
+import sys
 import traceback
 
 class Log(object):
@@ -109,7 +110,10 @@ class Log(object):
                 msg = self.con.render_text(msg, self.colors[level])
             else:
                 msg = "%s: %s" % (level.capitalize(), msg)
-            self.con.display(msg)
+            error = False
+            if self.levels.index(level) <= self.levels.index('error'):
+                error = True
+            self.con.display(msg, error=error)
 
     # Public methods
 

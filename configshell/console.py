@@ -56,7 +56,7 @@ class Console(object):
 
     __borg_state = {}
 
-    def __init__(self, stdin=sys.stdin, stdout=sys.stdout):
+    def __init__(self, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr):
         '''
         Initializes a Console instance.
         @param stdin: The console standard input.
@@ -67,6 +67,7 @@ class Console(object):
         self.__dict__ = self.__borg_state
         self._stdout = stdout
         self._stdin = stdin
+        self._stderr = stderr
         self.prefs = prefs.Prefs()
 
     # Public methods
@@ -130,16 +131,16 @@ class Console(object):
         '''
         self.escape("%d;%dH" % (ypos, xpos))
 
-    def raw_write(self, text):
+    def raw_write(self, text, output=self._stdout):
         '''
         Raw console printing function.
         @param text: The text to print.
         @type text: str
         '''
-        self._stdout.write(text)
-        self._stdout.flush()
+        output.write(text)
+        output.flush()
 
-    def display(self, text, no_lf=False):
+    def display(self, text, no_lf=False, error=False):
         '''
         Display a text with a default style.
         @param text: Text to display
@@ -148,9 +149,15 @@ class Console(object):
         @type no_lf: bool
         '''
         text = self.render_text(text)
-        self.raw_write(text)
+
+        if error:
+            output = self._stderr
+        else:
+            output = self._stdout
+
+        self.raw_write(text, output=output)
         if not no_lf:
-            self.raw_write('\n')
+            self.raw_write('\n', output=output)
 
     def epy_write(self, text):
         '''
