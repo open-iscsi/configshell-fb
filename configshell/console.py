@@ -131,7 +131,7 @@ class Console(object):
         '''
         self.escape("%d;%dH" % (ypos, xpos))
 
-    def raw_write(self, text, output=self._stdout):
+    def raw_write(self, text, output=sys.stdout):
         '''
         Raw console printing function.
         @param text: The text to print.
