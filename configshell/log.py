@@ -20,7 +20,6 @@ import time
 import prefs
 import inspect
 import console
-import sys
 import traceback
 
 class Log(object):
