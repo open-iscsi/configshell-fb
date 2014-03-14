@@ -1133,7 +1133,7 @@ class ConfigNode(object):
             for command in commands:
                 msg += "  - %s\n" % self.get_command_syntax(command)[0]
             self.shell.con.epy_write(msg)
-
+            return
         elif topic not in commands:
             raise ExecutionError("Cannot find help topic %s." % topic)
 
