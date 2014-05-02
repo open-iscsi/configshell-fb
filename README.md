@@ -14,8 +14,9 @@ is written using ConfigShell (http://github.com/Datera/targetcli).
 ## Installation
 
 ConfigShell is currently part of several Linux distributions, either under the
-configshell name or python-configshell. In most cases, simply installing the version
-packaged by your favorite Linux distribution is the best way to get it running.
+`configshell` name or `python-configshell`. In most cases, simply installing
+the version packaged by your favorite Linux distribution is the best way to get
+it running.
 
 ## Building from source
 
@@ -25,7 +26,7 @@ you're familiar with your Linux Distribution's package manager:
 1.  Clone the github repository for configshell using `git clone
     https://github.com/Datera/configshell.git`.
 
-2.  Make sure build dependencies are installed. To build configshell, you will need:
+2.  Make sure build dependencies are installed. To build ConfigShell, you will need:
 
 	* GNU Make.
 	* python 2.6 or 2.7
@@ -48,14 +49,14 @@ you're familiar with your Linux Distribution's package manager:
 ## Documentation
 
 The ConfigShell packages do ship with a full API documentation in both HTML and PDF
-formats, typically in /usr/share/doc/python-configshell/doc
+formats, typically in `/usr/share/doc/python-configshell/doc`
 
 Depending on your Linux distribution, the documentation might be shipped in a
 separate package.
 
 An other good source of information is the http://linux-iscsi.org wiki,
 offering many resources such as (not necessarily up-to-date) copies of the
-configshell API Reference Guide (HTML at
+ConfigShell API Reference Guide (HTML at
 http://linux-iscsi.org/Doc/configshell/html and PDF at
 http://linux-iscsi.org/Doc/configshell/configshell-API-reference.pdf).
 The Targetcli User's Guide at http://linux-iscsi.org/wiki/targetcli might also
@@ -63,11 +64,11 @@ provide interesting information as an example program written using
 ConfigShell.
 
 A simple example called `myshell` is included in the source tree and should be
-installed on your system in a location like /usr/share/doc/python-configshell/.
+installed on your system in a location like `/usr/share/doc/python-configshell/`.
 
 ## Author
 
-configshell was developed by Datera, Inc.
+ConfigShell was developed by Datera, Inc.
 http://www.datera.io
 
 The original author and current maintainer is
