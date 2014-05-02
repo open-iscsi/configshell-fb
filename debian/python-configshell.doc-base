@@ -1,0 +1,12 @@
+Document: python-configshell
+Title: python-configshell online documentation
+Author: Jerome Martin <jxm@netiant.com>
+Abstract: API reference documentation for python-configshell
+Section: System/Administration
+
+Format: HTML
+Index: /usr/share/doc/python-configshell/doc/html/index.html
+Files: /usr/share/doc/python-configshell/doc/html/*.html
+
+Format: PDF
+Files: /usr/share/doc/python-configshell/doc/pdf/configshell_API_Documentation.pdf.gz

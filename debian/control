@@ -1,14 +1,19 @@
 Source: configshell
 Section: python
 Priority: optional
-Maintainer: Jerome Martin <jxm@risingtidesystems.com>
-Build-Depends: debhelper(>= 7.0.1), python2.6|python2.7, python-epydoc, python-pyparsing
-Standards-Version: 3.8.1
+Standards-Version: 3.9.2
+Homepage: https://github.com/Datera/configshell
+Maintainer: Jerome Martin <jxm@netiant.com>
+Build-Depends: debhelper(>= 7.0.50~), python(>= 2.6.6-3~), python-epydoc, python-pyparsing, texlive-latex-base, texlive-latex-extra, texlive-latex-recommended, lmodern, ghostscript, texlive-fonts-recommended
 
 Package: python-configshell
 Architecture: all
-Depends: python (>= 2.6)|python2.6|python2.7, python-pyparsing, python-urwid (>=0.9.9)
-Suggests: configshell-doc, python-epydoc
-Description: Framework to create CLI interfaces.
+Depends: ${python:Depends}, ${misc:Depends}, python-epydoc, python-pyparsing, python-urwid
+Provides: ${python:Provides}
+Suggests: python-epydoc
+Description: A Python framework for building CLI interfaces and shells
+ A programs built with ConfigShell can be used either as a single-command tool
+ or as an interactive shell providing a UNIX filesystem-like navigation
+ interface, as well as full autocompletion support and interactive inline help
  .
- This package contains the configshell library.
+ This package contains the configshell library
