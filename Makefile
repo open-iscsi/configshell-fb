@@ -28,6 +28,8 @@ clean:
 	@rm -frv results
 	@rm -fv rpm/*.spec *.spec rpm/sed* sed*
 	@rm -frv ${NAME}-*
+	@find . -name *~ -exec rm -v {} \;
+	@find . -name \#*\# -exec rm -v {} \;
 	@echo "Finished cleanup."
 
 cleanall: clean
