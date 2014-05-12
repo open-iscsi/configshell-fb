@@ -72,4 +72,4 @@ ConfigShell was developed by Datera, Inc.
 http://www.datera.io
 
 The original author and current maintainer is
-Jerome Martin, at <mailto:jxm@netiant.com>
+Jerome Martin <jxm@netiant.com>
