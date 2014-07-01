@@ -607,12 +607,12 @@ class ConfigNode(object):
                 value = group_getter(p_def['name'])
                 type_method = self.get_type_method(p_def['type'])
                 value = type_method(value, reverse=True)
-                parameter = "%s=%s" % (p_def['name'], value)
+                param = "%s=%s" % (p_def['name'], value)
                 if p_def['writable'] is False:
-                    parameter += " [ro]"
-                underline2 = ''.ljust(len(parameter), '-')
+                    param += " [ro]"
+                underline2 = ''.ljust(len(param), '-')
                 parameters += '%s\n%s\n%s\n\n' \
-                        % (parameter, underline2, p_def['description'])
+                        % (param, underline2, p_def['description'])
 
             self.shell.con.epy_write('''%s\n%s\n%s\n'''
                                      % (section, underline1, parameters))
