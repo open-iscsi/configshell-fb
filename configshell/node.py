@@ -804,7 +804,7 @@ class ConfigNode(object):
             if m:
                 return (m.group(1), int(m.group(2)))
             else:
-                return (str(s), None)
+                return (str(s), 0)
 
         # Sort ending numbers numerically, so we get e.g. "lun1, lun2, lun10"
         # instead of "lun1, lun10, lun2".
