@@ -495,10 +495,10 @@ class ConfigNode(object):
             for p_name in self.list_group_params(group, writable=True):
                 p_def = self.get_group_param(group, p_name)
                 type_method = self.get_type_method(p_def['type'])
-                parameter = "%s=I{%s}" % (p_def['name'], p_def['type'])
-                underline2 = ''.ljust(len(parameter), '-')
+                p_name = "%s=I{%s}" % (p_def['name'], p_def['type'])
+                underline2 = ''.ljust(len(p_name), '-')
                 parameters += '%s\n%s\n%s\n\n' \
-                        % (parameter, underline2, p_def['description'])
+                        % (p_name, underline2, p_def['description'])
             self.shell.con.epy_write('''%s\n%s\n%s\n'''
                                      % (section, underline1, parameters))
 
