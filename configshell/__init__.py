@@ -15,6 +15,11 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
+if __name__ == "configshell":
+    from warnings import warn
+    warn("'configshell' package name for configshell-fb is deprecated, please"
+         + " instead import 'configshell_fb'", UserWarning, stacklevel=2)
+
 from log import Log
 from console import Console
 from shell import ConfigShell

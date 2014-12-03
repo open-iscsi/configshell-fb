@@ -20,11 +20,10 @@ import sys
 from pyparsing import Empty, Group, OneOrMore, Optional, ParseResults, Regex, Suppress, Word
 from pyparsing import alphanums
 
-import configshell.log as log
-import configshell.prefs as prefs
-import configshell.console as console
-
-from configshell.node import ConfigNode, ExecutionError
+from . import log
+from . import prefs
+from . import console
+from .node import ConfigNode, ExecutionError
 
 # A fix for frozen packages
 import signal
