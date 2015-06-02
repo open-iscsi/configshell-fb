@@ -27,5 +27,9 @@ setup(
     maintainer_email = 'agrover@redhat.com',
     url = 'http://github.com/agrover/configshell-fb',
     packages = ['configshell', 'configshell_fb'],
-    use_2to3 = True,
+    classifiers = [
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: Apache Software License",
+    ],
     )

@@ -15,14 +15,16 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import re
-import sys
-import tty
-import prefs
-import struct
-import textwrap
 from fcntl import ioctl
+import re
+import six
+import struct
+import sys
 from termios import TIOCGWINSZ, TCSADRAIN, tcsetattr, tcgetattr
+import textwrap
+import tty
+
+from .prefs import Prefs
 
 # avoid requiring epydoc at runtime
 try:
@@ -68,7 +70,7 @@ class Console(object):
         self._stdout = stdout
         self._stdin = stdin
         self._stderr = stderr
-        self.prefs = prefs.Prefs()
+        self.prefs = Prefs()
 
     # Public methods
 
@@ -338,7 +340,7 @@ class Console(object):
         @return: The formated string.
         @rtype: C{string}
         '''
-        if isinstance(tree, basestring):
+        if isinstance(tree, six.string_types):
             return tree
 
         if tree.tag == 'section':

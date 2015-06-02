@@ -15,7 +15,7 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import cPickle
+import six
 
 class Prefs(object):
     '''
@@ -114,7 +114,7 @@ class Prefs(object):
         @return: Iterates on the items in preferences.
         @rtype: yields items that are (key, value) pairs
         '''
-        return self._prefs.iteritems()
+        return six.iteritems(self._prefs)
 
     def save(self, filename=None):
         '''
@@ -129,7 +129,7 @@ class Prefs(object):
         if filename is not None:
             fsock = open(filename, 'wb')
             try:
-                cPickle.dump(self._prefs, fsock, 2)
+                six.moves.cPickle.dump(self._prefs, fsock, 2)
             finally:
                 fsock.close()
 
@@ -144,6 +144,6 @@ class Prefs(object):
         if filename is not None:
             fsock = open(filename, 'rb')
             try:
-                self._prefs = cPickle.load(fsock)
+                self._prefs = six.moves.cPickle.load(fsock)
             finally:
                 fsock.close()
