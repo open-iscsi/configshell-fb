@@ -20,8 +20,8 @@ if __name__ == "configshell":
     warn("'configshell' package name for configshell-fb is deprecated, please"
          + " instead import 'configshell_fb'", UserWarning, stacklevel=2)
 
-from log import Log
-from console import Console
-from shell import ConfigShell
-from node import ConfigNode, ExecutionError
-from prefs import Prefs
+from .console import Console
+from .log import Log
+from .node import ConfigNode, ExecutionError
+from .prefs import Prefs
+from .shell import ConfigShell

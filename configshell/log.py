@@ -15,12 +15,13 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
+import inspect
 import os
 import time
-import prefs
-import inspect
-import console
 import traceback
+
+from .console import Console
+from .prefs import Prefs
 
 class Log(object):
     '''
@@ -51,8 +52,8 @@ class Log(object):
         @type file_level: str
         '''
         self.__dict__ = self.__borg_state
-        self.con = console.Console()
-        self.prefs = prefs.Prefs()
+        self.con = Console()
+        self.prefs = Prefs()
 
         if console_level:
             self.prefs['loglevel_console'] = console_level

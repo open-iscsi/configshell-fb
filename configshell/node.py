@@ -15,8 +15,9 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import re
 import inspect
+import re
+import six
 
 class ExecutionError(Exception):
     pass
@@ -505,7 +506,7 @@ class ConfigNode(object):
         elif group not in self.list_config_groups():
             raise ExecutionError("Unknown configuration group: %s" % group)
 
-        for param, value in parameter.iteritems():
+        for param, value in six.iteritems(parameter):
             if param not in self.list_group_params(group):
                 raise ExecutionError("Unknown parameter %s in group '%s'."
                                      % (param, group))
@@ -1079,15 +1080,15 @@ class ConfigNode(object):
         def handle_input(input, raw):
             for key in input:
                 widget, pos = content.get_focus()
-                if unicode(key) == 'up':
+                if key == 'up':
                     if pos > 0:
                         content.set_focus(pos-1)
-                elif unicode(key) == 'down':
+                elif key == 'down':
                     try:
                         content.set_focus(pos+1)
                     except IndexError:
                         pass
-                elif unicode(key) == 'enter':
+                elif key == 'enter':
                     raise Selected(pos)
 
         content.set_focus(start_pos)
@@ -1263,7 +1264,7 @@ class ConfigNode(object):
                 bookmarks += "No bookmarks yet.\n"
             else:
                 for (bookmark, path) \
-                        in self.shell.prefs['bookmarks'].iteritems():
+                        in six.iteritems(self.shell.prefs['bookmarks']):
                     if len(bookmark) == 1:
                         bookmark += '\0'
                     underline = ''.ljust(len(bookmark), '-')
@@ -1731,7 +1732,7 @@ class ConfigNode(object):
             return []
         else:
             params = []
-            for p_name, p_def in self._configuration_groups[group].iteritems():
+            for p_name, p_def in six.iteritems(self._configuration_groups[group]):
                 (p_type, p_description, p_writable) = p_def
                 if writable is not None and p_writable != writable:
                     continue
