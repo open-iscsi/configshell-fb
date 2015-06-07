@@ -95,7 +95,6 @@ class ConfigShell(object):
     _current_parameter = ''
     _current_token = ''
     _current_completions = []
-    complete_key = 'tab'
 
     def __init__(self, preferences_dir=None):
         '''
@@ -765,7 +764,7 @@ class ConfigShell(object):
         '''
         while not self._exit:
             try:
-                readline.parse_and_bind("%s: complete" % self.complete_key)
+                readline.parse_and_bind("tab: complete")
                 readline.set_completer(self._complete)
                 cmdline = six.moves.input(self._get_prompt()).strip()
             except EOFError:
