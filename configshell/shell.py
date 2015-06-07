@@ -247,9 +247,8 @@ class ConfigShell(object):
         # Display the possible completions
 
         if num_matches:
-
             if max_length < width:
-                num_per_line = width / max_length
+                num_per_line = width // max_length
                 if num_per_line * max_length == width:
                     num_per_line -= 1
             else:
@@ -267,7 +266,7 @@ class ConfigShell(object):
                             break
                     self.con.raw_write('\n')
             else:
-                count = (num_matches + num_per_line - 1) / num_per_line
+                count = (num_matches + num_per_line - 1) // num_per_line
                 if len > 0 and len <= num_per_line:
                     count = 1
                 for i in range(1, count+1):
