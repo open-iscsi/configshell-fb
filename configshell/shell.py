@@ -79,7 +79,6 @@ class ConfigShell(object):
                      'color_command': 'cyan',
                      'color_parameter': 'magenta',
                      'color_keyword': 'cyan',
-                     'completions_in_columns': True,
                      'logfile': None,
                      'loglevel_console': 'info',
                      'loglevel_file': 'debug9',
@@ -125,7 +124,7 @@ class ConfigShell(object):
         if tty:
             readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
             readline.set_completion_display_matches_hook(
-                self._display_completions_python)
+                self._display_completions)
 
         self.log = log.Log()
 
@@ -176,28 +175,14 @@ class ConfigShell(object):
 
     # Private methods
 
-    def _display_completions_python(self, substitution, matches, max_length):
+    def _display_completions(self, substitution, matches, max_length):
         '''
-        Display completion hook for readline
+        Display the completions. Invoked by readline.
+        @param substitution: string to complete
+        @param matches: list of possible matches
+        @param max_length: length of the longest matching item
         '''
-        matches = [substitution] + matches
-        self._display_completions(matches, len(matches)-1, max_length)
-
-    def _display_completions(self, matches, num_matches, max_length):
-        '''
-        Hooked up to readline, this method displays:
-            - Possible completions for path/command/parameters
-            - Some help about the command being written
-            - The current parameter name and type hovering above the cursor
-        @param matches: Passed by readline, indexed from 1 to num_matches+1.
-        @type matches: a C list
-        @param num_matches: The number of matches.
-        @type num_matches: int
-        @param max_length: Length of the longer matches item.
-        @type max_length: int
-        '''
-        (x_orig, y_pos) = self.con.get_cursor_xy()
-        self.con.raw_write("\n")
+        x_orig = self.con.get_cursor_xy()[0]
         width = self.con.get_width()
         max_length += 2
 
@@ -207,32 +192,29 @@ class ConfigShell(object):
             '''
             return text.ljust(max_length, " ")
 
-        # Sort the matches
+        # Sort and colorize the matches
         if self._current_parameter:
             keywords = []
             values = []
-            for index in range(1, num_matches+1):
-                match = matches[index]
+            for match in matches:
                 if match.endswith('='):
                     keywords.append(
                         self.con.render_text(
                             just(match), self.prefs['color_keyword']))
+                elif '=' in match:
+                    _, _, value = match.partition('=')
+                    values.append(
+                        self.con.render_text(
+                            just(value), self.prefs['color_parameter']))
                 else:
-                    (keyword, sep, value) = match.partition('=')
-                    if sep:
-                        values.append(
-                            self.con.render_text(
-                                just(value), self.prefs['color_parameter']))
-                    else:
-                        values.append(
-                            self.con.render_text(
-                                just(match), self.prefs['color_parameter']))
-            matches = [''] + values + keywords
+                    values.append(
+                        self.con.render_text(
+                            just(match), self.prefs['color_parameter']))
+            matches = values + keywords
         else:
             paths = []
             commands = []
-            for index in range(1, num_matches+1):
-                match = matches[index]
+            for match in matches:
                 if '/' in match or match.startswith('@') or '*' in match:
                     paths.append(
                         self.con.render_text(
@@ -241,54 +223,22 @@ class ConfigShell(object):
                     commands.append(
                         self.con.render_text(
                             just(match), self.prefs['color_command']))
-            matches = [''] + paths + commands
+            matches = paths + commands
 
-        # Display the possible completions
-
-        if num_matches:
+        # Display the possible completions in columns
+        self.con.raw_write("\n")
+        if matches:
             if max_length < width:
-                num_per_line = width // max_length
-                if num_per_line * max_length == width:
-                    num_per_line -= 1
+                nr_cols = width // max_length
             else:
-                num_per_line = 1
+                nr_cols = 1
 
-            if not self.prefs['completions_in_columns']:
-                index_match = 0
-                done = False
-                while not done:
-                    for index_col in range(num_per_line):
-                        index_match += 1
-                        self.con.raw_write(matches[index_match])
-                        if index_match == num_matches:
-                            done = True
-                            break
-                    self.con.raw_write('\n')
-            else:
-                count = (num_matches + num_per_line - 1) // num_per_line
-                for i in range(1, count+1):
-                    l = i
-                    for j in range(num_per_line):
-                        if l > num_matches or matches[l] == 0:
-                            break
-                        else:
-                            self.con.raw_write(matches[l])
-                        l += count
-                    self.con.raw_write("\n")
+            for i in six.moves.range(0, len(matches), nr_cols):
+                self.con.raw_write(''.join(matches[i:i+nr_cols]))
+                self.con.raw_write('\n')
 
-        # Draw the "hovering" hint with currently filled parameter name
+        # Display the prompt and the command line
         line = "%s%s" % (self._get_prompt(), readline.get_line_buffer())
-        line_offset = len(self._get_prompt())
-        begidx = readline.get_begidx() + line_offset
-        endidx = readline.get_endidx() + line_offset
-        text = line[begidx:endidx]
-        (keyword, sep, value) = text.partition('=')
-        if sep:
-            paramidx = begidx + len(keyword) + 1
-        else:
-            paramidx = begidx
-        self.con.display("%s%s" % ("".rjust(paramidx, "."),
-                                   self._current_token))
         self.con.raw_write("%s" % line)
 
         # Move the cursor where it should be
