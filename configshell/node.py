@@ -147,9 +147,6 @@ class ConfigNode(object):
             'global', 'color_keyword', 'color',
             'Color to use for keyword completions.')
         self.define_config_group_param(
-            'global', 'completions_in_columns', 'bool',
-            'If B{true}, display completions in columns, not lines.')
-        self.define_config_group_param(
             'global', 'prompt_length', 'number',
             'Max length of the shell prompt path, 0 for infinite.')
 
