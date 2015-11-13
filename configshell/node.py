@@ -1061,9 +1061,6 @@ class ConfigNode(object):
         '''
         import urwid
 
-        class Selected(Exception):
-            pass
-
         palette = [('header', 'white', 'black'),
                    ('reveal focus', 'black', 'yellow', 'standout')]
 
@@ -1086,14 +1083,12 @@ class ConfigNode(object):
                     except IndexError:
                         pass
                 elif key == 'enter':
-                    raise Selected(pos)
+                    raise urwid.ExitMainLoop()
 
         content.set_focus(start_pos)
         loop = urwid.MainLoop(frame, palette, input_filter=handle_input)
-        try:
-            loop.run()
-        except Selected as pos:
-            return int(str(pos))
+        loop.run()
+        return listbox.focus_position
 
     def ui_complete_cd(self, parameters, text, current_param):
         '''
