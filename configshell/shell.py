@@ -107,7 +107,7 @@ class ConfigShell(object):
 
         # Grammar of the command line
         command = locatedExpr(Word(alphanums + '_'))('command')
-        var = Word(alphanums + '_\+/.<>()~@:-%]')
+        var = Word(alphanums + '_\+/.<>()~@:-%[]')
         value = var
         keyword = Word(alphanums + '_\-')
         kparam = locatedExpr(keyword + Suppress('=') + Optional(value, default=''))('kparams*')
@@ -122,7 +122,7 @@ class ConfigShell(object):
         self._parser = parser
 
         if tty:
-            readline.set_completer_delims('\t\n ~!#$^&()[{]}\|;\'",?')
+            readline.set_completer_delims('\t\n ~!#$^&(){}\|;\'",?')
             readline.set_completion_display_matches_hook(
                 self._display_completions)
 
