@@ -15,7 +15,7 @@ Description: Framework to create CLI interfaces (Documentation).
 
 Package: python-configshell-fb
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python-pyparsing, python-urwid (>=0.9.9)
+Depends: ${python:Depends}, ${misc:Depends}, python-pyparsing, python-urwid (>=0.9.9), python-six
 Suggests: python-configshell-fb-docs
 Conflicts: python-configshell
 Provides: ${python:Provides}
@@ -25,7 +25,7 @@ Description: Framework to create CLI interfaces (Python 2).
 
 Package: python3-configshell-fb
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}, python3-pyparsing, python3-urwid (>=0.9.9)
+Depends: ${python3:Depends}, ${misc:Depends}, python3-pyparsing, python3-urwid (>=0.9.9), python3-six
 Suggests: python-configshell-fb-docs
 Description: Framework to create CLI interfaces (Python 3).
  .
