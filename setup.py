@@ -25,7 +25,7 @@ setup(
     license = 'Apache 2.0',
     maintainer = 'Andy Grover',
     maintainer_email = 'agrover@redhat.com',
-    url = 'http://github.com/agrover/configshell-fb',
+    url = 'http://github.com/open-iscsi/configshell-fb',
     packages = ['configshell', 'configshell_fb'],
     classifiers = [
         "Programming Language :: Python",

@@ -16,8 +16,8 @@ Since configshell-fb is used most often with targetcli-fb, the
 targetcli-fb mailing should be used for configshell-fb discussion.
 
  * Mailing list: [targetcli-fb-devel](https://lists.fedorahosted.org/mailman/listinfo/targetcli-fb-devel)
- * Source repo: [GitHub](https://github.com/agrover/configshell-fb)
- * Bugs: [GitHub](https://github.com/agrover/configshell-fb/issues) or [Trac](https://fedorahosted.org/targetcli-fb/)
+ * Source repo: [GitHub](https://github.com/open-iscsi/configshell-fb)
+ * Bugs: [GitHub](https://github.com/open-iscsi/configshell-fb/issues) or [Trac](https://fedorahosted.org/targetcli-fb/)
  * Tarballs: [fedorahosted](https://fedorahosted.org/releases/t/a/targetcli-fb/)
 
 In-repo packaging
