@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Andy Grover <agrover@redhat.com>
 Build-Depends: debhelper(>= 9), python, python3, python-setuptools, python3-setuptools, python-epydoc, python-pyparsing
-Standards-Version: 3.9.4
+Standards-Version: 3.9.8
 X-Python-Version: >= 2.6
 X-Python3-Version: >= 3.1
 
