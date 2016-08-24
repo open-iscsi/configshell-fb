@@ -23,9 +23,18 @@ Depends: ${misc:Depends},
          python-urwid,
 Suggests: python-configshell-fb-doc
 Conflicts: python-configshell
-Description: Framework to create CLI interfaces (Python 2).
+Description: Python library for building configuration shells - Python 2
+ The configshell-fb package is a Python library that provides a
+ framework for building simple but nice CLI-based applications.
  .
- This package contains the configshell library (free branch).
+ The configshell-fb package is a fork of the "configshell" code
+ written by RisingTide Systems. The "-fb" differentiates between the
+ original and this version. Please ensure to use either all "fb"
+ versions of the targetcli components -- targetcli, rtslib, and
+ configshell, or stick with all non-fb versions, since they are no
+ longer strictly compatible.
+ .
+ This package contains the Python 2 module.
 
 Package: python3-configshell-fb
 Architecture: all
@@ -35,13 +44,31 @@ Depends: ${misc:Depends},
          python3-six,
          python3-urwid,
 Suggests: python-configshell-fb-doc
-Description: Framework to create CLI interfaces (Python 3).
+Description: Python library for building configuration shells - Python 3
+ The configshell-fb package is a Python library that provides a
+ framework for building simple but nice CLI-based applications.
  .
- This package contains the configshell library (free branch, Python 3).
+ The configshell-fb package is a fork of the "configshell" code
+ written by RisingTide Systems. The "-fb" differentiates between the
+ original and this version. Please ensure to use either all "fb"
+ versions of the targetcli components -- targetcli, rtslib, and
+ configshell, or stick with all non-fb versions, since they are no
+ longer strictly compatible.
+ .
+ This package contains the Python 3 module.
 
 Package: python-configshell-fb-doc
 Section: doc
 Architecture: all
-Description: Framework to create CLI interfaces (Documentation).
+Description: Python library for building configuration shells - doc
+ The configshell-fb package is a Python library that provides a
+ framework for building simple but nice CLI-based applications.
  .
- This package contains the documentation of the configshell library (free branch).
+ The configshell-fb package is a fork of the "configshell" code
+ written by RisingTide Systems. The "-fb" differentiates between the
+ original and this version. Please ensure to use either all "fb"
+ versions of the targetcli components -- targetcli, rtslib, and
+ configshell, or stick with all non-fb versions, since they are no
+ longer strictly compatible.
+ .
+ This package contains the documentation.
