@@ -2,21 +2,25 @@ Source: python-configshell-fb
 Section: python
 Priority: optional
 Maintainer: Andy Grover <agrover@redhat.com>
-Build-Depends: debhelper(>= 9), python, python3, python-setuptools, python3-setuptools, python-epydoc
+Build-Depends: debhelper(>= 9),
+               dh-python,
+               python-all,
+               python-setuptools,
+               python-epydoc,
+               python3-all,
+               python3-setuptools,
+Build-Depends-Indep: python-six,
+                     python3-six,
 Standards-Version: 3.9.8
 Homepage: https://github.com/open-iscsi/configshell-fb
-X-Python-Version: >= 2.6
-X-Python3-Version: >= 3.1
-
-Package: python-configshell-fb-doc
-Architecture: all
-Description: Framework to create CLI interfaces (Documentation).
- .
- This package contains the documentation of the configshell library (free branch).
 
 Package: python-configshell-fb
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python-pyparsing, python-urwid (>=0.9.9), python-six
+Depends: ${misc:Depends},
+         ${python:Depends},
+         python-pyparsing,
+         python-six,
+         python-urwid,
 Suggests: python-configshell-fb-doc
 Conflicts: python-configshell
 Provides: ${python:Provides}
@@ -26,8 +30,19 @@ Description: Framework to create CLI interfaces (Python 2).
 
 Package: python3-configshell-fb
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}, python3-pyparsing, python3-urwid (>=0.9.9), python3-six
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         python3-pyparsing,
+         python3-six,
+         python3-urwid,
 Suggests: python-configshell-fb-doc
 Description: Framework to create CLI interfaces (Python 3).
  .
  This package contains the configshell library (free branch, Python 3).
+
+Package: python-configshell-fb-doc
+Section: doc
+Architecture: all
+Description: Framework to create CLI interfaces (Documentation).
+ .
+ This package contains the documentation of the configshell library (free branch).
