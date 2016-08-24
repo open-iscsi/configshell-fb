@@ -1,4 +1,4 @@
-Source: configshell-fb
+Source: python-configshell-fb
 Section: python
 Priority: optional
 Maintainer: Andy Grover <agrover@redhat.com>
