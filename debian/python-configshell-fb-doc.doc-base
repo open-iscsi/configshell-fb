@@ -5,5 +5,5 @@ Abstract: configshell is a library which is used to create cli interfaces
 Section: Programming/Python
 
 Format: HTML
-Index: /usr/share/doc/python-configshell-fb-docs/html/index.html
-Files: /usr/share/doc/python-configshell-fb-docs/html/*.html
+Index: /usr/share/doc/python-configshell-fb-doc/html/index.html
+Files: /usr/share/doc/python-configshell-fb-doc/html/*.html

@@ -8,7 +8,7 @@ Homepage: https://github.com/open-iscsi/configshell-fb
 X-Python-Version: >= 2.6
 X-Python3-Version: >= 3.1
 
-Package: python-configshell-fb-docs
+Package: python-configshell-fb-doc
 Architecture: all
 Description: Framework to create CLI interfaces (Documentation).
  .
@@ -17,7 +17,7 @@ Description: Framework to create CLI interfaces (Documentation).
 Package: python-configshell-fb
 Architecture: all
 Depends: ${python:Depends}, ${misc:Depends}, python-pyparsing, python-urwid (>=0.9.9), python-six
-Suggests: python-configshell-fb-docs
+Suggests: python-configshell-fb-doc
 Conflicts: python-configshell
 Provides: ${python:Provides}
 Description: Framework to create CLI interfaces (Python 2).
@@ -27,7 +27,7 @@ Description: Framework to create CLI interfaces (Python 2).
 Package: python3-configshell-fb
 Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends}, python3-pyparsing, python3-urwid (>=0.9.9), python3-six
-Suggests: python-configshell-fb-docs
+Suggests: python-configshell-fb-doc
 Description: Framework to create CLI interfaces (Python 3).
  .
  This package contains the configshell library (free branch, Python 3).
