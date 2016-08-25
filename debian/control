@@ -23,7 +23,6 @@ Depends: ${misc:Depends},
          python-urwid,
 Suggests: python-configshell-fb-doc
 Conflicts: python-configshell
-Provides: ${python:Provides}
 Description: Framework to create CLI interfaces (Python 2).
  .
  This package contains the configshell library (free branch).
