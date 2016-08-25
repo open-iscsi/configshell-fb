@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 
-build_dir	= build
 install_dir	= $(CURDIR)/debian/tmp
 pkgname 	= configshell-fb
 name 		= configshell
@@ -36,9 +35,12 @@ override_dh_auto_install: $(PYTHON3:%=install-python%) $(PYTHON2:%=install-pytho
 
 
 override_dh_installdocs:
-	cd $(build_dir); epydoc --no-sourcecode --html -n $(pkgname) \
-		--exclude configobj ../$(name)/*.py
-	dh_installdocs $(build_dir)/html
+	mkdir -p build
+	mkdir -p $(CURDIR)/debian/python-configshell-fb-doc/usr/share/doc/python-configshell-fb-doc/html
+	cd build; epydoc --no-sourcecode --html -n configshell-fb \
+		--exclude configobj ../configshell/*.py \
+		--output $(CURDIR)/debian/python-configshell-fb-doc/usr/share/doc/python-configshell-fb-doc/html
+	dh_installdocs
 
 override_dh_auto_clean:
 	dh_auto_clean
