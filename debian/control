@@ -1,7 +1,7 @@
 Source: python-configshell-fb
 Section: python
 Priority: optional
-Maintainer: Andy Grover <agrover@redhat.com>
+Maintainer: targetcli-fb developers <targetcli-fb-devel@lists.fedorahosted.org>
 Build-Depends: debhelper(>= 9),
                dh-python,
                python-all,
