@@ -56,7 +56,7 @@ class ConfigNode(object):
                  B{pwd} command to display the complete current path.
 
                  Navigating the tree is done using the B{cd} command. Without
-                 any argument, B{cd} will present you wil the full objects
+                 any argument, B{cd} will present you with the full objects
                  tree. Just use arrows to select the destination path, and
                  enter will get you there. Please try B{help cd} for navigation
                  tips.
