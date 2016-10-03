@@ -20,7 +20,7 @@ from setuptools import setup
 
 setup(
     name = 'configshell-fb',
-    version = '1.1.20',
+    version = '1.1.21',
     description = 'A framework to implement simple but nice CLIs.',
     license = 'Apache 2.0',
     maintainer = 'Andy Grover',
