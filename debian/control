@@ -1,32 +1,74 @@
-Source: configshell-fb
+Source: python-configshell-fb
 Section: python
 Priority: optional
-Maintainer: Andy Grover <agrover@redhat.com>
-Build-Depends: debhelper(>= 8), python, python3, python-setuptools, python3-setuptools, python-epydoc, python-pyparsing
-Standards-Version: 3.9.4
-X-Python-Version: >= 2.6
-X-Python3-Version: >= 3.1
-
-Package: python-configshell-fb-docs
-Architecture: all
-Description: Framework to create CLI interfaces (Documentation).
- .
- This package contains the documentation of the configshell library (free branch).
+Maintainer: targetcli-fb developers <targetcli-fb-devel@lists.fedorahosted.org>
+Build-Depends: debhelper(>= 9),
+               dh-python,
+               python-all,
+               python-setuptools,
+               python-epydoc,
+               python3-all,
+               python3-setuptools,
+Build-Depends-Indep: python-six,
+                     python3-six,
+Standards-Version: 3.9.8
+Homepage: https://github.com/open-iscsi/configshell-fb
 
 Package: python-configshell-fb
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python-pyparsing, python-urwid (>=0.9.9), python-six
-Suggests: python-configshell-fb-docs
+Depends: ${misc:Depends},
+         ${python:Depends},
+         python-pyparsing,
+         python-six,
+         python-urwid,
+Suggests: python-configshell-fb-doc
 Conflicts: python-configshell
-Provides: ${python:Provides}
-Description: Framework to create CLI interfaces (Python 2).
+Description: Python library for building configuration shells - Python 2
+ The configshell-fb package is a Python library that provides a
+ framework for building simple but nice CLI-based applications.
  .
- This package contains the configshell library (free branch).
+ The configshell-fb package is a fork of the "configshell" code
+ written by RisingTide Systems. The "-fb" differentiates between the
+ original and this version. Please ensure to use either all "fb"
+ versions of the targetcli components -- targetcli, rtslib, and
+ configshell, or stick with all non-fb versions, since they are no
+ longer strictly compatible.
+ .
+ This package contains the Python 2 module.
 
 Package: python3-configshell-fb
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}, python3-pyparsing, python3-urwid (>=0.9.9), python3-six
-Suggests: python-configshell-fb-docs
-Description: Framework to create CLI interfaces (Python 3).
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         python3-pyparsing,
+         python3-six,
+         python3-urwid,
+Suggests: python-configshell-fb-doc
+Description: Python library for building configuration shells - Python 3
+ The configshell-fb package is a Python library that provides a
+ framework for building simple but nice CLI-based applications.
  .
- This package contains the configshell library (free branch, Python 3).
+ The configshell-fb package is a fork of the "configshell" code
+ written by RisingTide Systems. The "-fb" differentiates between the
+ original and this version. Please ensure to use either all "fb"
+ versions of the targetcli components -- targetcli, rtslib, and
+ configshell, or stick with all non-fb versions, since they are no
+ longer strictly compatible.
+ .
+ This package contains the Python 3 module.
+
+Package: python-configshell-fb-doc
+Section: doc
+Architecture: all
+Description: Python library for building configuration shells - doc
+ The configshell-fb package is a Python library that provides a
+ framework for building simple but nice CLI-based applications.
+ .
+ The configshell-fb package is a fork of the "configshell" code
+ written by RisingTide Systems. The "-fb" differentiates between the
+ original and this version. Please ensure to use either all "fb"
+ versions of the targetcli components -- targetcli, rtslib, and
+ configshell, or stick with all non-fb versions, since they are no
+ longer strictly compatible.
+ .
+ This package contains the documentation.
