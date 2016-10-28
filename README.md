@@ -25,7 +25,8 @@ Packages
 configshell-fb is packaged for a number of Linux distributions
 including RHEL,
 [Fedora](https://apps.fedoraproject.org/packages/python-configshell),
-openSUSE, Arch Linux, and
+openSUSE, Arch Linux,
+[Gentoo](https://packages.gentoo.org/packages/dev-python/configshell-fb), and
 [Debian](https://tracker.debian.org/pkg/python-configshell-fb).
 
 "fb" -- "free branch"
