@@ -48,7 +48,17 @@ if sys.stdout.isatty():
     tty=True
 else:
     tty=False
+    
+    # remember the original setting
+    oldTerm = os.environ['TERM']
+    os.environ['TERM'] = ''
 
+    import readline
+
+    # restore the orignal TERM setting
+    os.environ['TERM'] = oldTerm
+    del oldTerm
+    
 # Pyparsing helper to group the location of a token and its value
 # http://stackoverflow.com/questions/18706631/pyparsing-get-token-location-in-results-name
 locator = Empty().setParseAction(lambda s, l, t: l)
