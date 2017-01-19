@@ -1403,7 +1403,15 @@ class ConfigNode(object):
             raise ExecutionError("Command not found %s" % command)
 
         self.assert_params(method, pparams, kparams)
-        return method(*pparams, **kparams)
+        
+        try:
+            self.shell.lock.acquire()
+            return method(*pparams, **kparams)
+        finally:
+            if command  == 'exit':
+                self.shell.lock.exit()
+            else:
+                self.shell.lock.release()
 
     def assert_params(self, method, pparams, kparams):
         '''

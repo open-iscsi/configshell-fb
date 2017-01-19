@@ -18,6 +18,9 @@ under the License.
 import os
 import six
 import sys
+import time
+import fcntl
+import errno
 from pyparsing import (alphanums, Empty, Group, OneOrMore, Optional,
                        ParseResults, Regex, Suppress, Word)
 
@@ -64,6 +67,55 @@ else:
 locator = Empty().setParseAction(lambda s, l, t: l)
 def locatedExpr(expr):
     return Group(locator('location') + expr('value'))
+
+class Lock:
+    '''
+    Implement the cross processes lock mechanism with flock witch supported by Mac OS and Unix/Linux Systems.
+    '''
+
+    def __init__(self, path='/tmp/targetCLI.lock', timeout=10, delay=.05):
+        '''
+        @param path: The file path for the lock file, default value is '/tmp/targetCLI.lock'
+        @type path: str
+        @param timeout: The wait time for lock to release, default value is 10 seconds
+        @type timeout: int
+        @param delay: The sleep time during waiting, default value is 0.05 second
+        @type delay: float
+        '''
+        self._path = path
+        self._timeout = timeout
+        self._delay = delay
+        self._fd = None
+
+    def acquire(self):
+        self._fd = os.open(self._path, os.O_CREAT)
+        start_time = time.time()
+        while True:
+            try:
+                fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return
+            except (OSError, IOError) as ex:
+                if ex.errno not in (errno.EAGAIN, errno.EACCES):
+                   raise
+                elif time.time() > (start_time + self._timeout):
+                   raise ExecutionError("Could not get  the lock, exceeded the waiting time: %d" % self._timeout)
+            time.sleep(self._delay)
+
+    def release(self):
+        if self._fd is not None:
+            fcntl.flock(self._fd, fcntl.LOCK_UN)
+            os.close(self._fd)
+            self._fd = None
+
+    def exit(self):
+        if self._fd is not None:
+            os.close(self._fd)
+            self._fd = None
+
+        try:
+            os.unlink(self._path)
+        except:
+            pass
 
 class ConfigShell(object):
     '''
@@ -137,6 +189,8 @@ class ConfigShell(object):
                 self._display_completions)
 
         self.log = log.Log()
+        
+        self.lock = Lock()
 
         if preferences_dir is not None:
             preferences_dir = os.path.expanduser(preferences_dir)
