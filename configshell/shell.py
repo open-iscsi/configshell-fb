@@ -50,13 +50,14 @@ else:
     tty=False
     
     # remember the original setting
-    oldTerm = os.environ['TERM']
+    oldTerm = os.environ.get('TERM')
     os.environ['TERM'] = ''
 
     import readline
 
     # restore the orignal TERM setting
-    os.environ['TERM'] = oldTerm
+    if oldTerm != None:
+        os.environ['TERM'] = oldTerm
     del oldTerm
     
 # Pyparsing helper to group the location of a token and its value
