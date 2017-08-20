@@ -27,6 +27,10 @@ setup(
     maintainer_email = 'agrover@redhat.com',
     url = 'http://github.com/open-iscsi/configshell-fb',
     packages = ['configshell', 'configshell_fb'],
+    install_requires = [
+        'pyparsing',
+        'six',
+    ],
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
