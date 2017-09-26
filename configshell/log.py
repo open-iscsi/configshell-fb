@@ -28,6 +28,7 @@ class Log(object):
     Implements a file and console logger using python's logging facility.
     Log levels are, in raising criticality:
         - debug
+        - verbose
         - info
         - warning
         - error
@@ -36,9 +37,9 @@ class Log(object):
     who can then be read/changed by other objects using Prefs()
     '''
     __borg_state = {}
-    levels = ['critical', 'error', 'warning', 'info', 'debug']
+    levels = ['critical', 'error', 'warning', 'info', 'verbose', 'debug']
     colors = {'critical': 'red', 'error': 'red', 'warning': 'yellow',
-              'info': 'green', 'debug': 'blue'}
+              'info': 'green', 'verbose': 'blue', 'debug': 'blue'}
 
     def __init__(self, console_level=None,
                  logfile=None, file_level=None):
@@ -137,6 +138,14 @@ class Log(object):
         if msg:
             trace += '\n%s' % msg
         self._log('error', trace)
+
+    def verbose(self, msg):
+        '''
+        Logs a verbose message.
+        @param msg: The message to log.
+        @type msg: str
+        '''
+        self._log('verbose', msg)
 
     def info(self, msg):
         '''
