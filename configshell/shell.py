@@ -876,7 +876,7 @@ class ConfigShell(object):
         self._current_node = self._root_node
         for cmdline in file_descriptor:
             try:
-                self.run_cmdline(cmdline)
+                self.run_cmdline(cmdline.strip())
             except Exception as msg:
                 self.log.error(msg)
                 if exit_on_error is True:
