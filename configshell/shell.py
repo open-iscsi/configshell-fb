@@ -843,7 +843,7 @@ class ConfigShell(object):
         @type cmdline: str
         '''
         if cmdline:
-            self.log.debug("Running command line '%s'." % cmdline)
+            self.log.verbose("Running command line '%s'." % cmdline)
             path, command, pparams, kparams = self._parse_cmdline(cmdline)[1:]
             self._execute_command(path, command, pparams, kparams)
 
