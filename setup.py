@@ -16,7 +16,21 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
+import os
+import re
 from setuptools import setup
+
+# Get version without importing.
+init_file_path = os.path.join(os.path.dirname(__file__), 'configshell/__init__.py')
+
+with open(init_file_path) as f:
+    for line in f:
+        match = re.match(r"__version__.*'([0-9.]+)'", line)
+        if match:
+            version = match.group(1)
+            break
+    else:
+        raise Exception("Couldn't find version in setup.py")
 
 setup(
     name = 'configshell-fb',
