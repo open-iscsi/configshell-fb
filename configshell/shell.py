@@ -118,7 +118,7 @@ class ConfigShell(object):
 
         # Grammar of the command line
         command = locatedExpr(Word(alphanums + '_'))('command')
-        var = Word(alphanums + ';,=_\+/.<>()~@:-%[]')
+        var = Word(alphanums + '?;&*$!#,=_\+/.<>()~@:-%[]')
         value = var
         keyword = Word(alphanums + '_\-')
         kparam = locatedExpr(keyword + Suppress('=') + Optional(value, default=''))('kparams*')
