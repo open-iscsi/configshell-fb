@@ -18,8 +18,9 @@ under the License.
 import os
 import six
 import sys
-from pyparsing import (alphanums, Empty, Group, OneOrMore, Optional,
-                       ParseResults, Regex, Suppress, Word)
+from pyparsing import (alphanums, Empty, Group, locatedExpr,
+                       OneOrMore, Optional, ParseResults, Regex,
+                       Suppress, Word)
 
 from . import console
 from . import log
@@ -48,7 +49,7 @@ if sys.stdout.isatty():
     tty=True
 else:
     tty=False
-    
+
     # remember the original setting
     oldTerm = os.environ.get('TERM')
     os.environ['TERM'] = ''
@@ -59,12 +60,6 @@ else:
     if oldTerm != None:
         os.environ['TERM'] = oldTerm
     del oldTerm
-    
-# Pyparsing helper to group the location of a token and its value
-# http://stackoverflow.com/questions/18706631/pyparsing-get-token-location-in-results-name
-locator = Empty().setParseAction(lambda s, l, t: l)
-def locatedExpr(expr):
-    return Group(locator('location') + expr('value'))
 
 class ConfigShell(object):
     '''
@@ -608,13 +603,13 @@ class ConfigShell(object):
                     current_token = 'pparam'
                 elif 'x' in [x.value for x in parse_results.kparams]:
                     current_token = 'kparam'
-            elif path and beg == parse_results.path.location:
+            elif path and beg == parse_results.path.locn_start:
                 current_token = 'path'
-            elif command and beg == parse_results.command.location:
+            elif command and beg == parse_results.command.locn_start:
                 current_token = 'command'
-            elif pparams and beg in [p.location for p in parse_results.pparams]:
+            elif pparams and beg in [p.locn_start for p in parse_results.pparams]:
                 current_token = 'pparam'
-            elif kparams and beg in [k.location for k in parse_results.kparams]:
+            elif kparams and beg in [k.locn_start for k in parse_results.kparams]:
                 current_token = 'kparam'
 
             self._current_completions = \
