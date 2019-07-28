@@ -26,12 +26,6 @@ import tty
 
 from .prefs import Prefs
 
-# avoid requiring epydoc at runtime
-try:
-    import epydoc.markup.epytext
-except ImportError:
-    pass
-
 class Console(object):
     '''
     Implements various utility methods providing a console UI support toolkit,
@@ -166,19 +160,12 @@ class Console(object):
         Renders and print and epytext-formatted text on the console.
         '''
         text = self.dedent(text)
-        try:
-            dom_tree = epydoc.markup.epytext.parse(text, None)
-        except NameError:
-            # epydoc not installed, strip markup
-            dom_tree = text
-            dom_tree = dom_tree.replace("B{", "")
-            dom_tree = dom_tree.replace("I{", "")
-            dom_tree = dom_tree.replace("C{", "")
-            dom_tree = dom_tree.replace("}", "")
-            dom_tree += "\n"
-        except:
-            self.display(text)
-            raise
+        dom_tree = text
+        dom_tree = dom_tree.replace("B{", "")
+        dom_tree = dom_tree.replace("I{", "")
+        dom_tree = dom_tree.replace("C{", "")
+        dom_tree = dom_tree.replace("}", "")
+        dom_tree += "\n"
         text = self.render_domtree(dom_tree)
         # We need to remove the last line feed, but there might be
         # escape characters after it...
@@ -412,9 +399,9 @@ class Console(object):
             text = self.render_text(
                 childstr, styles=['underline'], todefault=True)
         elif tree.tag == 'symbol':
-            text = '%s' \
-                    % epydoc.markup.epytext.SYMBOL_TO_PLAINTEXT.get(
-                        childstr, childstr)
+            # Should not occur because this module does not have
+            # docstrings with symbols (e.g. S{alpha}).
+            raise NotImplementedError
         elif tree.tag == 'graph':
             text = '<<%s graph: %s>>' \
                     % (variables[0], ', '.join(variables[1:]))
