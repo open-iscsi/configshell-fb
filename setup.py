@@ -44,6 +44,7 @@ setup(
     install_requires = [
         'pyparsing',
         'six',
+        'urwid',
     ],
     classifiers = [
         "Programming Language :: Python",
