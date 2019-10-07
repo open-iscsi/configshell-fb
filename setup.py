@@ -42,7 +42,7 @@ setup(
     url = 'http://github.com/open-iscsi/configshell-fb',
     packages = ['configshell', 'configshell_fb'],
     install_requires = [
-        'pyparsing',
+        'pyparsing >= 2.0.2',
         'six',
         'urwid',
     ],
