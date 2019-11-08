@@ -191,7 +191,7 @@ class Console(object):
                 break
         else:
             clean_text = text
-        self.raw_write(clean_text)
+        self.raw_write(clean_text, output=self._stdout)
 
     def indent(self, text, margin=2):
         '''
