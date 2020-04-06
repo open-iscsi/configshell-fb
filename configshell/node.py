@@ -47,31 +47,31 @@ class ConfigNode(object):
                  The available commands depend on the current path or target
                  path you want to run a command in: different path have
                  different sets of available commands, i.e. a path pointing at
-                 an iscsi target will not have the same availaible commands as,
+                 an iSCSI target will not have the same available commands as,
                  say, a path pointing at a storage object.
 
                  The prompt that starts each command line indicates your
                  current path. Alternatively (useful if the prompt displays
                  an abbreviated path to save space), you can run the
-                 B{pwd} command to display the complete current path.
+                 `pwd` command to display the complete current path.
 
-                 Navigating the tree is done using the B{cd} command. Without
-                 any argument, B{cd} will present you with the full objects
+                 Navigating the tree is done using the `cd` command. Without
+                 any argument, `cd` presents you with the full objects
                  tree. Just use arrows to select the destination path, and
-                 enter will get you there. Please try B{help cd} for navigation
+                 enter will get you there. Please try `help cd` for navigation
                  tips.
 
                  COMMAND SYNTAX
                  ==============
                  Commands are built using the following syntax:
 
-                 [I{TARGET_PATH}] B{COMMAND_NAME} [I{OPTIONS}]
+                 [TARGET_PATH] COMMAND_NAME [OPTIONS]
 
-                 The I{TARGET_PATH} indicates the path to run the command from.
-                 If ommited, the command will be run from your current path.
+                 TARGET_PATH indicates the path to run the command from.
+                 If omitted, the command is run from your current path.
 
-                 The I{OPTIONS} depend on the command. Please use B{help
-                 COMMAND} to get more information.
+                 OPTIONS depend on the command. Please use `help` to
+                 get more information.
                  '''
 
     def __init__(self, name, parent=None, shell=None):
@@ -410,7 +410,7 @@ class ConfigNode(object):
     def ui_getgroup_global(self, parameter):
         '''
         This is the backend method for getting configuration parameters out of
-        the B{global} configuration group. It gets the values from the Prefs()
+        the global configuration group. It gets the values from the Prefs()
         backend. Eventual casting to str for UI display is handled by the ui
         get command, for symmetry with the pendant ui_setgroup method.
         Existence of the parameter in the group should have already been
@@ -464,14 +464,14 @@ class ConfigNode(object):
     def ui_command_set(self, group=None, **parameter):
         '''
         Sets one or more configuration parameters in the given group.
-        The B{global} group contains all global CLI preferences.
+        The "global" group contains all global CLI preferences.
         Other groups are specific to the current path.
 
         Run with no parameter nor group to list all available groups, or
         with just a group name to list all available parameters within that
         group.
 
-        Example: B{set global color_mode=true loglevel_console=info}
+        Example: set global color_mode=true loglevel_console=info
 
         SEE ALSO
         ========
@@ -493,7 +493,7 @@ class ConfigNode(object):
             for p_name in self.list_group_params(group, writable=True):
                 p_def = self.get_group_param(group, p_name)
                 type_method = self.get_type_method(p_def['type'])
-                p_name = "%s=I{%s}" % (p_def['name'], p_def['type'])
+                p_name = "%s=%s" % (p_def['name'], p_def['type'])
                 underline2 = ''.ljust(len(p_name), '-')
                 parameters += '%s\n%s\n%s\n\n' \
                         % (p_name, underline2, p_def['description'])
@@ -579,7 +579,7 @@ class ConfigNode(object):
         with just a group name to list all available parameters within that
         group.
 
-        Example: B{get global color_mode loglevel_console}
+        Example: get global color_mode loglevel_console
 
         SEE ALSO
         ========
@@ -679,14 +679,14 @@ class ConfigNode(object):
         PARAMETERS
         ==========
 
-        I{path}
-        -------
-        The I{path} to display the nodes tree of. Can be an absolute path, a
+        path
+        ----
+        The path to display the nodes tree of. Can be an absolute path, a
         relative path or a bookmark.
 
-        I{depth}
-        --------
-        The I{depth} parameter limits the maximum depth of the tree to display.
+        depth
+        -----
+        The depth parameter limits the maximum depth of the tree to display.
         If set to 0, then the complete tree will be displayed (the default).
 
         SEE ALSO
@@ -929,10 +929,10 @@ class ConfigNode(object):
         '''
         Change current path to path.
 
-        The path is constructed just like a unix path, with B{/} as separator
-        character, B{.} for the current node, B{..} for the parent node.
+        The path is constructed just like a unix path, with "/" as separator
+        character, "." for the current node, ".." for the parent node.
 
-        Suppose the nodes tree looks like this::
+        Suppose the nodes tree looks like this:
            +-/
            +-a0      (1)
            | +-b0    (*)
@@ -944,17 +944,17 @@ class ConfigNode(object):
 
         Suppose the current node is the one marked (*) at the beginning of all
         the following examples:
-            - B{cd ..} takes you to the node marked (1)
-            - B{cd .} makes you stay in (*)
-            - B{cd /a1/b0/c0/d0} takes you to the node marked (2)
-            - B{cd ../../a1} takes you to the node marked (3)
-            - B{cd /a1} also takes you to the node marked (3)
-            - B{cd /} takes you to the root node B{/}
-            - B{cd /a0/b0/./c0/../../../a1/.} takes you to the node marked (3)
+            - `cd ..` takes you to the node marked (1)
+            - `cd .` makes you stay in (*)
+            - `cd /a1/b0/c0/d0` takes you to the node marked (2)
+            - `cd ../../a1` takes you to the node marked (3)
+            - `cd /a1` also takes you to the node marked (3)
+            - `cd /` takes you to the root node "/"
+            - `cd /a0/b0/./c0/../../../a1/.` takes you to the node marked (3)
 
-        You can also navigate the path history with B{<} and B{>}:
-            - B{cd <} takes you back one step in the path history
-            - B{cd >} takes you one step forward in the path history
+        You can also navigate the path history with "<" and ">":
+            - `cd <` takes you back one step in the path history
+            - `cd >` takes you one step forward in the path history
 
         SEE ALSO
         ========
@@ -1192,32 +1192,32 @@ class ConfigNode(object):
         Manage your bookmarks.
 
         Note that you can also access your bookmarks with the
-        B{cd} command. For instance, the following commands
+        `cd` command. For instance, the following commands
         are equivalent:
-            - B{cd mybookmark}
-            - C{bookmarks go mybookmark}
+            - `cd @mybookmark`
+            - `bookmarks go mybookmark``
 
         You can also use bookmarks anywhere where you would use
         a normal path:
-            - B{@mybookmark ls} would perform the B{ls} command
+            - `@mybookmark ls` performs the `ls` command
             in the bookmarked path.
-            - B{ls @mybookmark} would show you the objects tree from
+            - `ls @mybookmark` shows you the objects tree from
             the bookmarked path.
 
 
         PARAMETERS
         ==========
 
-        I{action}
-        ---------
-        The I{action} is one of:
-            - B{add} adds the current path to your bookmarks.
-            - B{del} deletes a bookmark.
-            - B{go} takes you to a bookmarked path.
-            - B{show} shows you all your bookmarks.
+        action
+        ------
+        The "action" parameter is one of:
+            - `add` adds the current path to your bookmarks.
+            - `del` deletes a bookmark.
+            - `go` takes you to a bookmarked path.
+            - `show` shows you all your bookmarks.
 
-        I{bookmark}
-        -----------
+        bookmark
+        --------
         This is the name of the bookmark.
 
         SEE ALSO
@@ -1425,23 +1425,23 @@ class ConfigNode(object):
         if spec.defaults is None:
             nb_opt_params = 0
         else:
-            nb_opt_params = len(spec.defaults)            
+            nb_opt_params = len(spec.defaults)
         nb_max_params = len(args)
         nb_min_params = nb_max_params - nb_opt_params
-        
+
         req_params = args[:nb_min_params]
         opt_params = args[nb_min_params:]
-        
+
         unexpected_keywords = sorted(set(kparams) - set(args))
         missing_params = sorted(set(args[len(pparams):])
                                 - set(opt_params)
                                 - set(kparams.keys()))
-                
+
         nb_params = len(pparams) + len(kparams)
         nb_standard_params = len(pparams) \
                 + len([param for param in kparams if param in args])
         nb_extended_params = nb_params - nb_standard_params
-        
+
         self.shell.log.debug("Min params: %d" % nb_min_params)
         self.shell.log.debug("Max params: %d" % nb_max_params)
         self.shell.log.debug("Required params: %s" % ", ".join(req_params))
@@ -1450,7 +1450,7 @@ class ConfigNode(object):
         self.shell.log.debug("Got %s extended params." %  nb_extended_params)
         self.shell.log.debug("Variable positional params: %s" % pp)
         self.shell.log.debug("Variable keyword params: %s" % kw)
-                
+
         if len(missing_params) == 1:
             raise ExecutionError(
                 "Missing required parameter %s"
@@ -1459,7 +1459,7 @@ class ConfigNode(object):
             raise ExecutionError(
                 "Missing required parameters %s"
                 % ", ".join("'%s'" % missing for missing in missing_params))
-        
+
         if spec.keywords is None:
             if len(unexpected_keywords) == 1:
                 raise ExecutionError(
@@ -1476,19 +1476,19 @@ class ConfigNode(object):
                 raise ExecutionError(
                     "Duplicate parameter %s."
                     % param)
-            
+
         if nb_opt_params == 0 \
            and nb_standard_params != nb_min_params \
            and pp is None:
             raise ExecutionError(
                 "Got %d positionnal parameters, expected exactly %d."
                 % (nb_standard_params, nb_min_params))
-    
+
         if nb_standard_params > nb_max_params and pp is None:
             raise ExecutionError(
                 "Got %d positionnal parameters, expected at most %d."
                 % (nb_standard_params, nb_max_params))
-        
+
     def list_commands(self):
         '''
         @return: The list of user commands available for this node.
@@ -1592,44 +1592,23 @@ class ConfigNode(object):
         self.shell.log.debug("Required: %s" % str(required_parameters))
         self.shell.log.debug("Optional: %s" % str(optional_parameters))
 
-        syntax = "B{%s} " % command
+        syntax = "%s " % command
 
         required_parameters_str = ''
         for param in required_parameters:
-            required_parameters_str += "I{%s} " % param
+            required_parameters_str += "%s " % param
         syntax += required_parameters_str
 
         optional_parameters_str = ''
         for param in optional_parameters:
-            optional_parameters_str += "[I{%s}] " % param
+            optional_parameters_str += "[%s] " % param
         syntax += optional_parameters_str
 
         comments = []
-        #if optional_parameters:
-        #    comments.append(self.shell.con.dedent(
-        #        '''
-        #        %s - These are optional parameters that can either be
-        #        specified in the above order as positional parameters, or in
-        #        any order at the end of the line as keyword=value parameters.
-        #        ''' % optional_parameters_str[:-1]))
-
         if args is not None:
-            syntax += "[I{%s}...] " % args
-        #    comments.append(self.shell.con.dedent(
-        #        '''
-        #        [I{%s}...] - This command accepts an arbitrary number of
-        #        parameters before any keyword=value parameter. In order to use
-        #        them, you must fill in all previous positional parameters if
-        #        any. See B{DESCRIPTION} below.
-        #        ''' % args))
-
+            syntax += "[%s...] " % args
         if kwargs is not None:
-            syntax += "[I{%s=value}...] " % (kwargs)
-        #    comments.append(self.shell.con.dedent(
-        #        '''
-        #        This command also accepts an arbitrary number of
-        #        keyword=value parameters. See B{DESCRIPTION} below.
-        #        '''))
+            syntax += "[%s=value...] " % (kwargs)
 
         default_values = ''
         if num_defaults > 0:

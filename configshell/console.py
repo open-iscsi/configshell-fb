@@ -26,12 +26,6 @@ import tty
 
 from .prefs import Prefs
 
-# avoid requiring epydoc at runtime
-try:
-    import epydoc.markup.epytext
-except ImportError:
-    pass
-
 class Console(object):
     '''
     Implements various utility methods providing a console UI support toolkit,
@@ -166,20 +160,6 @@ class Console(object):
         Renders and print and epytext-formatted text on the console.
         '''
         text = self.dedent(text)
-        try:
-            dom_tree = epydoc.markup.epytext.parse(text, None)
-        except NameError:
-            # epydoc not installed, strip markup
-            dom_tree = text
-            dom_tree = dom_tree.replace("B{", "")
-            dom_tree = dom_tree.replace("I{", "")
-            dom_tree = dom_tree.replace("C{", "")
-            dom_tree = dom_tree.replace("}", "")
-            dom_tree += "\n"
-        except:
-            self.display(text)
-            raise
-        text = self.render_domtree(dom_tree)
         # We need to remove the last line feed, but there might be
         # escape characters after it...
         clean_text = ''
@@ -264,7 +244,7 @@ class Console(object):
         that any lines that are longer than terminal width or max_width
         are broken into shorter lines (at the first whitespace sequence that
         occurs before the limit. If the given string contains newlines, they
-        will I{not} be removed.  Any lines that begin with whitespace will not
+        will not be removed.  Any lines that begin with whitespace will not
         be wordwrapped.
 
         This version takes into account ANSI escape characters:
@@ -275,14 +255,14 @@ class Console(object):
 
         @param indent: If specified, then indent each line by this number
             of spaces.
-        @type indent: C{int}
+        @type indent: int
         @param startindex: If specified, then assume that the first line
-            is already preceeded by C{startindex} characters.
-        @type startindex: C{int}
+            is already preceded by startindex characters.
+        @type startindex: int
         @param splitchars: A list of non-whitespace characters which can
             be used to split a line.  (E.g., use '/\\' to allow path names
             to be split over multiple lines.)
-        @rtype: C{str}
+        @rtype: str
         '''
         right = self.get_width()
         if splitchars:
@@ -322,104 +302,3 @@ class Console(object):
             current_style = next_style.split(self._ansi_reset)[-1]
 
         return ''.join(result).rstrip()+'\n'
-
-    def render_domtree(self, tree, indent=0, seclevel=0):
-        '''
-        Convert a DOM document encoding epytext to an 8-bits ascii string with
-        ANSI formating for simpler styles.
-
-        @param tree: A DOM document encoding of an epytext string.
-        @type tree: C{Element}
-        @param indent: The indentation for the string representation of
-            C{tree}.  Each line of the returned string will begin with
-            C{indent} space characters.
-        @type indent: C{int}
-        @param seclevel: The section level that C{tree} appears at.  This
-            is used to generate section headings.
-        @type seclevel: C{int}
-        @return: The formated string.
-        @rtype: C{string}
-        '''
-        if isinstance(tree, six.string_types):
-            return tree
-
-        if tree.tag == 'section':
-            seclevel += 1
-
-        # Figure out the child indent level.
-        if tree.tag == 'epytext':
-            cindent = indent
-        elif tree.tag == 'li' and tree.attribs.get('bullet'):
-            cindent = indent + 1 + len(tree.attribs.get('bullet'))
-        else:
-            cindent = indent + 2
-
-        variables = [self.render_domtree(c, cindent, seclevel)
-                     for c in tree.children]
-        childstr = ''.join(variables)
-
-        if tree.tag == 'para':
-            text = self.render_text(childstr)
-            text = self.wordwrap(text, indent)+'\n'
-        elif tree.tag == 'li':
-            # We should be able to use getAttribute here; but there's no
-            # convenient way to test if an element has an attribute..
-            bullet = tree.attribs.get('bullet') or '-'
-            text = indent*' ' + bullet + ' ' + childstr.lstrip()
-        elif tree.tag == 'heading':
-            text = ((indent-2)*' ' + self.render_text(
-                childstr, styles=['bold'], todefault=True) \
-                + '\n')
-        elif tree.tag == 'doctestblock':
-            lines = [(indent+2)*' '+line for line in childstr.split('\n')]
-            text = '\n'.join(lines) + '\n\n'
-        elif tree.tag == 'literalblock':
-            lines = [(indent+1)*' '+ self.render_text(
-                line, todefault=True)
-                     for line in childstr.split('\n')]
-            text = '\n'.join(lines) + '\n\n'
-        elif tree.tag == 'fieldlist':
-            text = childstr
-        elif tree.tag == 'field':
-            numargs = 0
-            while tree.children[numargs+1].tag == 'arg':
-                numargs += 1
-            args = variables[1:1+numargs]
-            body = variables[1+numargs:]
-            text = (indent)*' '+'@'+variables[0]
-            if args:
-                text += '(' + ', '.join(args) + ')'
-            text = text + ':\n' + ''.join(body)
-        elif tree.tag == 'uri':
-            if len(variables) != 2:
-                raise ValueError('Bad URI ')
-            elif variables[0] == variables[1]:
-                text = self.render_text(
-                    '%s' % variables[1],
-                    'blue', styles=['underline'], todefault=True)
-            else:
-                text = '%r<%s>' % (variables[0], variables[1])
-        elif tree.tag == 'link':
-            if len(variables) != 2:
-                raise ValueError('Bad Link')
-            text = '%s' % variables[0]
-        elif tree.tag in ('olist', 'ulist'):
-            text = childstr.replace('\n\n', '\n')+'\n'
-        elif tree.tag == 'bold':
-            text = self.render_text(
-                childstr, styles=['bold'], todefault=True)
-        elif tree.tag == 'italic':
-            text = self.render_text(
-                childstr, styles=['underline'], todefault=True)
-        elif tree.tag == 'symbol':
-            text = '%s' \
-                    % epydoc.markup.epytext.SYMBOL_TO_PLAINTEXT.get(
-                        childstr, childstr)
-        elif tree.tag == 'graph':
-            text = '<<%s graph: %s>>' \
-                    % (variables[0], ', '.join(variables[1:]))
-        else:
-            # Assume that anything else can be passed through.
-            text = self.render_text(childstr)
-
-        return text
