@@ -15,6 +15,7 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
+import os
 import six
 import fcntl
 
@@ -143,7 +144,7 @@ class Prefs(object):
         if filename is None:
             filename = self.filename
 
-        if filename is not None:
+        if filename is not None and os.path.exists(filename):
             fsock = open(filename, 'rb')
             fcntl.lockf(fsock, fcntl.LOCK_SH)
             try:
