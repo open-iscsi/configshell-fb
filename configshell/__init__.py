@@ -26,7 +26,7 @@ from .node import ConfigNode, ExecutionError
 from .prefs import Prefs
 from .shell import ConfigShell
 
-__version__ = '1.1.28'
+__version__ = '1.1.29'
 __url__ = 'http://github.com/open-iscsi/configshell-fb'
 __description__ = 'A framework to implement simple but nice CLIs.'
 __license__ = 'Apache 2.0'
