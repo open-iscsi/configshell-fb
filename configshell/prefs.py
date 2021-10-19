@@ -130,10 +130,12 @@ class Prefs(object):
 
         if filename is not None:
             fsock = open(filename, 'wb')
-            fcntl.lockf(fsock, fcntl.LOCK_UN)
             try:
+                fcntl.flock(fsock, fcntl.LOCK_EX)
                 six.moves.cPickle.dump(self._prefs, fsock, 2)
+                fsock.flush()
             finally:
+                fcntl.flock(fsock, fcntl.LOCK_UN)
                 fsock.close()
 
     def load(self, filename=None):
@@ -144,10 +146,12 @@ class Prefs(object):
         if filename is None:
             filename = self.filename
 
-        if filename is not None and os.path.exists(filename):
+        if filename is not None and os.path.isfile(filename):
             fsock = open(filename, 'rb')
-            fcntl.lockf(fsock, fcntl.LOCK_SH)
             try:
-                self._prefs = six.moves.cPickle.load(fsock)
+                fcntl.flock(fsock, fcntl.LOCK_SH)
+                if os.path.getsize(filename) > 0:
+                    self._prefs = six.moves.cPickle.load(fsock)
             finally:
+                fcntl.flock(fsock, fcntl.LOCK_UN)
                 fsock.close()
