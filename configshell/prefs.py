@@ -33,7 +33,7 @@ class Prefs(object):
     autosave = False
     __borg_state = {}
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, lockfile=None):
         '''
         Instanciates the ConfigShell preferences object.
         @param filename: File to store the preferencces to.
@@ -42,6 +42,11 @@ class Prefs(object):
         self.__dict__ = self.__borg_state
         if filename is not None:
             self.filename = filename
+        if lockfile is None:
+            prefs_dir = os.getenv("TARGETCLI_HOME", '~/.targetcli')
+            prefs_dir = os.path.expanduser(prefs_dir)
+            lockfile = os.path.join(prefs_dir, 'prefs.lock')
+        self.lockfile = lockfile
 
     def __getitem__(self, key):
         '''
@@ -129,14 +134,20 @@ class Prefs(object):
             filename = self.filename
 
         if filename is not None:
-            fsock = open(filename, 'wb')
+            flk = open(self.lockfile, 'wb')
+            fcntl.flock(flk, fcntl.LOCK_EX)
             try:
-                fcntl.flock(fsock, fcntl.LOCK_EX)
-                six.moves.cPickle.dump(self._prefs, fsock, 2)
-                fsock.flush()
+                fpref = open(filename, 'wb')
+                try:
+                    fcntl.flock(fpref, fcntl.LOCK_EX)
+                    six.moves.cPickle.dump(self._prefs, fpref, 2)
+                    fpref.flush()
+                finally:
+                    fcntl.flock(fpref, fcntl.LOCK_UN)
+                    fpref.close()
             finally:
-                fcntl.flock(fsock, fcntl.LOCK_UN)
-                fsock.close()
+                fcntl.flock(flk, fcntl.LOCK_UN)
+                flk.close()
 
     def load(self, filename=None):
         '''
@@ -147,11 +158,16 @@ class Prefs(object):
             filename = self.filename
 
         if filename is not None and os.path.isfile(filename):
-            fsock = open(filename, 'rb')
+            flk = open(self.lockfile, 'wb')
+            fcntl.flock(flk, fcntl.LOCK_SH)
             try:
-                fcntl.flock(fsock, fcntl.LOCK_SH)
-                if os.path.getsize(filename) > 0:
-                    self._prefs = six.moves.cPickle.load(fsock)
+                fpref = open(filename, 'rb')
+                try:
+                    fcntl.flock(fpref, fcntl.LOCK_SH)
+                    self._prefs = six.moves.cPickle.load(fpref)
+                finally:
+                    fcntl.flock(fpref, fcntl.LOCK_UN)
+                    fpref.close()
             finally:
-                fcntl.flock(fsock, fcntl.LOCK_UN)
-                fsock.close()
+                fcntl.flock(flk, fcntl.LOCK_UN)
+                flk.close()
