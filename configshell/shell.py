@@ -101,7 +101,7 @@ class ConfigShell(object):
     _current_token = ''
     _current_completions = []
 
-    def __init__(self, preferences_dir=None):
+    def __init__(self, preferences_dir=None, console=None):
         '''
         Creates a new ConfigShell.
         @param preferences_dir: Directory to load/save preferences from/to
@@ -177,7 +177,9 @@ class ConfigShell(object):
             if pref not in self.prefs:
                 self.prefs[pref] = value
 
-        self.con = console.Console()
+        if console is None:
+            console = console.Console()
+        self.con = console
 
     # Private methods
 
