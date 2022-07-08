@@ -1417,10 +1417,10 @@ class ConfigNode(object):
         @type kparams: dict
         @raise ExecutionError: When the check fails.
         '''
-        spec = inspect.getargspec(method)
+        spec = inspect.getfullargspec(method)
         args = spec.args[1:]
         pp = spec.varargs
-        kw = spec.keywords
+        kw = spec.varkw
 
         if spec.defaults is None:
             nb_opt_params = 0
@@ -1460,7 +1460,7 @@ class ConfigNode(object):
                 "Missing required parameters %s"
                 % ", ".join("'%s'" % missing for missing in missing_params))
 
-        if spec.keywords is None:
+        if kw is None:
             if len(unexpected_keywords) == 1:
                 raise ExecutionError(
                     "Unexpected keyword parameter '%s'."
