@@ -1417,10 +1417,10 @@ class ConfigNode(object):
         @type kparams: dict
         @raise ExecutionError: When the check fails.
         '''
-        spec = inspect.getargspec(method)
+        spec = inspect.getfullargspec(method)
         args = spec.args[1:]
         pp = spec.varargs
-        kw = spec.keywords
+        kw = spec.varkw
 
         if spec.defaults is None:
             nb_opt_params = 0
@@ -1460,7 +1460,7 @@ class ConfigNode(object):
                 "Missing required parameters %s"
                 % ", ".join("'%s'" % missing for missing in missing_params))
 
-        if spec.keywords is None:
+        if kw is None:
             if len(unexpected_keywords) == 1:
                 raise ExecutionError(
                     "Unexpected keyword parameter '%s'."
@@ -1575,12 +1575,12 @@ class ConfigNode(object):
         @type command: str
         '''
         method = self.get_command_method(command)
-        parameters, args, kwargs, default = inspect.getargspec(method)
-        parameters = parameters[1:]
-        if default is None:
+        spec = inspect.getfullargspec(method)
+        parameters = spec.args[1:]
+        if spec.defaults is None:
             num_defaults = 0
         else:
-            num_defaults = len(default)
+            num_defaults = len(spec.defaults)
 
         if num_defaults != 0:
             required_parameters = parameters[:-num_defaults]
@@ -1605,16 +1605,16 @@ class ConfigNode(object):
         syntax += optional_parameters_str
 
         comments = []
-        if args is not None:
-            syntax += "[%s...] " % args
-        if kwargs is not None:
-            syntax += "[%s=value...] " % (kwargs)
+        if spec.varargs is not None:
+            syntax += "[%s...] " % spec.varargs
+        if spec.varkw is not None:
+            syntax += "[%s=value...] " % (spec.varkw)
 
         default_values = ''
         if num_defaults > 0:
             for index, param in enumerate(optional_parameters):
-                if default[index] is not None:
-                    default_values += "%s=%s " % (param, str(default[index]))
+                if spec.defaults[index] is not None:
+                    default_values += "%s=%s " % (param, str(spec.defaults[index]))
 
         return syntax, comments, default_values
 
@@ -1630,14 +1630,14 @@ class ConfigNode(object):
         @rtype: ([str...], bool, bool)
         '''
         method = self.get_command_method(command)
-        parameters, args, kwargs, default = inspect.getargspec(method)
-        parameters = parameters[1:]
-        if args is not None:
-            free_pparams = args
+        spec = inspect.getfullargspec(method)
+        parameters = spec.args[1:]
+        if spec.varargs is not None:
+            free_pparams = spec.varargs
         else:
             free_pparams = False
-        if kwargs is not None:
-            free_kparams = kwargs
+        if spec.varkw is not None:
+            free_kparams = spec.varkw
         else:
             free_kparams = False
         self.shell.log.debug("Signature is %s, %s, %s."
