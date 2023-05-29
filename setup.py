@@ -34,7 +34,7 @@ with open(init_file_path) as f:
 
 setup(
     name = 'configshell-fb',
-    version = '1.1.29',
+    version = '1.1.30',
     description = 'A framework to implement simple but nice CLIs.',
     license = 'Apache 2.0',
     maintainer = 'Andy Grover',
