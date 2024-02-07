@@ -481,7 +481,7 @@ class ConfigNode(object):
             self.shell.con.epy_write('''
                                      AVAILABLE CONFIGURATION GROUPS
                                      ==============================
-                                     %s
+                                     %s\n
                                      ''' % ' '.join(self.list_config_groups()))
         elif not parameter:
             if group not in self.list_config_groups():
@@ -589,7 +589,7 @@ class ConfigNode(object):
             self.shell.con.epy_write('''
                                      AVAILABLE CONFIGURATION GROUPS
                                      ==============================
-                                     %s
+                                     %s\n
                                      ''' % ' '.join(self.list_config_groups()))
         elif not parameter:
             if group not in self.list_config_groups():
@@ -1125,6 +1125,7 @@ class ConfigNode(object):
                                    ''')
             for command in commands:
                 msg += "  - %s\n" % self.get_command_syntax(command)[0]
+            msg += "\n"
             self.shell.con.epy_write(msg)
             return
 
