@@ -43,7 +43,6 @@ setup(
     packages = ['configshell', 'configshell_fb'],
     install_requires = [
         'pyparsing >=2.0.2',
-        'six',
         'urwid',
     ],
     classifiers = [

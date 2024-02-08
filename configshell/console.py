@@ -17,7 +17,6 @@ under the License.
 
 from fcntl import ioctl
 import re
-import six
 import struct
 import sys
 from termios import TIOCGWINSZ, TCSADRAIN, tcsetattr, tcgetattr
