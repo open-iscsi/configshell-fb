@@ -139,7 +139,8 @@ class ConfigShell(object):
             if not os.path.exists(preferences_dir):
                 os.makedirs(preferences_dir)
             self._prefs_file = preferences_dir + '/prefs.bin'
-            self.prefs = prefs.Prefs(self._prefs_file)
+            self._prefs_lock = preferences_dir + '/prefs.lock'
+            self.prefs = prefs.Prefs(self._prefs_file, self._prefs_lock)
             self._cmd_history = preferences_dir + '/history.txt'
             self._save_history = True
             if not os.path.isfile(self._cmd_history):
