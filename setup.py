@@ -26,6 +26,7 @@ init_file_path = os.path.join(os.path.dirname(__file__), 'configshell/__init__.p
 with open(init_file_path) as f:
     for line in f:
         match = re.match(r"__version__.*'([0-9.]+)'", line)
+        match = re.match(r"__version__.*'([0-9]+\.[0-9]+\.[0-9]+.*\.[a-z].*)'", line)
         if match:
             version = match.group(1)
             break
