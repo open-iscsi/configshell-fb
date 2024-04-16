@@ -16,8 +16,8 @@ under the License.
 '''
 
 import os
-import six
 import fcntl
+import pickle
 
 class Prefs(object):
     '''
@@ -116,7 +116,7 @@ class Prefs(object):
         @return: Iterates on the items in preferences.
         @rtype: yields items that are (key, value) pairs
         '''
-        return six.iteritems(self._prefs)
+        return self._prefs.items()
 
     def save(self, filename=None):
         '''
@@ -132,7 +132,7 @@ class Prefs(object):
             fsock = open(filename, 'wb')
             fcntl.lockf(fsock, fcntl.LOCK_UN)
             try:
-                six.moves.cPickle.dump(self._prefs, fsock, 2)
+                pickle.dump(self._prefs, fsock, 2)
             finally:
                 fsock.close()
 
@@ -148,6 +148,6 @@ class Prefs(object):
             fsock = open(filename, 'rb')
             fcntl.lockf(fsock, fcntl.LOCK_SH)
             try:
-                self._prefs = six.moves.cPickle.load(fsock)
+                self._prefs = pickle.load(fsock)
             finally:
                 fsock.close()
