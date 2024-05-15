@@ -23,7 +23,8 @@ import traceback
 from .console import Console
 from .prefs import Prefs
 
-class Log(object):
+
+class Log:
     '''
     Implements a file and console logger using python's logging facility.
     Log levels are, in raising criticality:

@@ -15,11 +15,12 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import os
 import fcntl
+import os
 import pickle
 
-class Prefs(object):
+
+class Prefs:
     '''
     This is a preferences backend object used to:
         - Hold the ConfigShell preferences
@@ -74,10 +75,7 @@ class Prefs(object):
         @param key: The preferences dictionnary key to check.
         @type key: any valid dict key
         '''
-        if key in self._prefs:
-            return True
-        else:
-            return False
+        return key in self._prefs
 
     def __delitem__(self, key):
         '''
@@ -148,6 +146,6 @@ class Prefs(object):
             fsock = open(filename, 'rb')
             fcntl.lockf(fsock, fcntl.LOCK_SH)
             try:
-                self._prefs = pickle.load(fsock)
+                self._prefs = pickle.load(fsock)  # noqa S301 TODO
             finally:
                 fsock.close()
