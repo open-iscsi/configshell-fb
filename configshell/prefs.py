@@ -16,8 +16,8 @@ under the License.
 '''
 
 import fcntl
-import os
 import pickle
+from pathlib import Path
 
 
 class Prefs:
@@ -127,12 +127,10 @@ class Prefs:
             filename = self.filename
 
         if filename is not None:
-            fsock = open(filename, 'wb')
-            fcntl.lockf(fsock, fcntl.LOCK_UN)
-            try:
+            path = Path(filename)
+            with path.open('wb') as fsock:
+                fcntl.lockf(fsock, fcntl.LOCK_UN)
                 pickle.dump(self._prefs, fsock, 2)
-            finally:
-                fsock.close()
 
     def load(self, filename=None):
         '''
@@ -142,10 +140,8 @@ class Prefs:
         if filename is None:
             filename = self.filename
 
-        if filename is not None and os.path.exists(filename):
-            fsock = open(filename, 'rb')
-            fcntl.lockf(fsock, fcntl.LOCK_SH)
-            try:
+        if filename is not None and Path(filename).exists():
+            path = Path(filename)
+            with path.open('rb') as fsock:
+                fcntl.lockf(fsock, fcntl.LOCK_SH)
                 self._prefs = pickle.load(fsock)  # noqa S301 TODO
-            finally:
-                fsock.close()

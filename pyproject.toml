@@ -70,7 +70,7 @@ select = [
     "TID",  # flake8-tidy-imports
     "INT",  # flake8-gettext
     "ARG",  # flake8-unused-argument
-    #"PTH", # flake8-use-pathlib TODO
+    "PTH",  # flake8-use-pathlib
     "PL",   # Pylint
     "FLY",  # flynt
     "PERF", # Perflint
@@ -84,7 +84,6 @@ ignore = [
     "S105",    # Possible hardcoded password assigned
     "RET505",  # Unnecessary `else` after `return` statement
     "PLW2901", # TODO `for` loop variable overwritten by assignment target
-    "SIM115",  # TODO Use context handler for opening files
     "UP031",   # TODO Use format specifiers instead of percent format
     "SIM102",  # Use a single if statement instead of nested if statements
     "SIM108",  # Use ternary operator {contents} instead of if-else-block

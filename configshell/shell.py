@@ -19,6 +19,7 @@ import os
 import signal
 import sys
 from contextlib import suppress
+from pathlib import Path
 
 from pyparsing import (
     OneOrMore,
@@ -57,15 +58,15 @@ else:
     tty = False
 
     # remember the original setting
-    old_term = os.environ.get('TERM')
-    os.environ['TERM'] = ''
-
+    old_term = os.getenv('TERM')
+    os.unsetenv('TERM')
     import readline
 
     # restore the orignal TERM setting
     if old_term is not None:
-        os.environ['TERM'] = old_term
+        os.putenv('TERM', old_term)
     del old_term
+
 
 class ConfigShell:
     '''
@@ -141,23 +142,25 @@ class ConfigShell:
         self.log = log.Log()
 
         if preferences_dir is not None:
-            preferences_dir = os.path.expanduser(preferences_dir)
-            if not os.path.exists(preferences_dir):
-                os.makedirs(preferences_dir)
-            self._prefs_file = preferences_dir + '/prefs.bin'
-            self.prefs = prefs.Prefs(self._prefs_file)
-            self._cmd_history = preferences_dir + '/history.txt'
+            preferences_dir_path = Path(preferences_dir)
+            if not preferences_dir_path.exists():
+                preferences_dir_path.mkdir(parents=True)
+            self._prefs_file = preferences_dir_path / 'prefs.bin'
+            self.prefs = prefs.Prefs(str(self._prefs_file))
+            self._cmd_history = preferences_dir_path / '/history.txt'
             self._save_history = True
-            if not os.path.isfile(self._cmd_history):
+            cmd_history_path = self._cmd_history
+            if not cmd_history_path.is_file():
                 try:
-                    open(self._cmd_history, 'w').close()
+                    with cmd_history_path.open('w'):
+                        pass
                 except OSError:
                     self.log.warning("Cannot create history file %s, "
                                      % self._cmd_history
                                      + "command history will not be saved.")
                     self._save_history = False
 
-            if os.path.isfile(self._cmd_history) and tty:
+            if self._cmd_history.is_file() and tty:
                 try:
                     readline.read_history_file(self._cmd_history)
                 except OSError:
@@ -854,12 +857,10 @@ class ConfigShell:
         @type exit_on_error: bool
         '''
         try:
-            script_fd = open(script_path)
-            self.run_stdin(script_fd, exit_on_error)
-        except OSError as msg:
-            raise OSError(msg)
-        finally:
-            script_fd.close()
+            with Path(script_path).open() as script_fd:
+                self.run_stdin(script_fd, exit_on_error)
+        except OSError as e:
+            raise OSError(e)
 
     def run_stdin(self, file_descriptor=sys.stdin, exit_on_error=True):
         '''

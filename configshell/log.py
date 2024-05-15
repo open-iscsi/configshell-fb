@@ -16,9 +16,9 @@ under the License.
 '''
 
 import inspect
-import os
 import time
 import traceback
+from pathlib import Path
 
 from .console import Console
 from .prefs import Prefs
@@ -87,12 +87,7 @@ class Log:
                    date_fields[3], date_fields[4], date_fields[5])
 
         if self.prefs['logfile']:
-            path =  os.path.expanduser(self.prefs['logfile'])
-            handle = open(path, 'a')
-            try:
-                handle.write("[%s] %s %s\n" % (level, date, msg))
-            finally:
-                handle.close()
+            Path(self.prefs['logfile']).write_text(f"[{level}] {date} {msg}\n")
 
     def _log(self, level, msg):
         '''
