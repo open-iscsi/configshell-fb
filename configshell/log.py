@@ -106,7 +106,7 @@ class Log:
             if self.prefs["color_mode"]:
                 msg = self.con.render_text(msg, self.colors[level])
             else:
-                msg = "%s: %s" % (level.capitalize(), msg)
+                msg = f"{level.capitalize()}: {msg}"
             error = False
             if self.levels.index(level) <= self.levels.index('error'):
                 error = True
@@ -132,7 +132,7 @@ class Log:
         '''
         trace = traceback.format_exc().rstrip()
         if msg:
-            trace += '\n%s' % msg
+            trace += f'\n{msg}'
         self._log('error', trace)
 
     def verbose(self, msg):

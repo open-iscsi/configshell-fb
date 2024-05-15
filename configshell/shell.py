@@ -155,9 +155,8 @@ class ConfigShell:
                     with cmd_history_path.open('w'):
                         pass
                 except OSError:
-                    self.log.warning("Cannot create history file %s, "
-                                     % self._cmd_history
-                                     + "command history will not be saved.")
+                    self.log.warning(f"Cannot create history file {self._cmd_history}, "
+                                     f"command history will not be saved.")
                     self._save_history = False
 
             if self._cmd_history.is_file() and tty:
@@ -178,8 +177,7 @@ class ConfigShell:
         try:
             self.prefs.load()
         except OSError:
-            self.log.warning("Could not load preferences file %s."
-                             % self._prefs_file)
+            self.log.warning(f"Could not load preferences file {self._prefs_file}.")
 
         for pref, value in self.default_prefs.items():
             if pref not in self.prefs:
@@ -252,8 +250,8 @@ class ConfigShell:
                 self.con.raw_write('\n')
 
         # Display the prompt and the command line
-        line = "%s%s" % (self._get_prompt(), readline.get_line_buffer())
-        self.con.raw_write("%s" % line)
+        line = f"{self._get_prompt()}{readline.get_line_buffer()}"
+        self.con.raw_write(line)
 
         # Move the cursor where it should be
         y_pos = self.con.get_cursor_xy()[1]
@@ -275,7 +273,7 @@ class ConfigShell:
         completions = []
         target = self._current_node.get_node(path)
         commands = target.list_commands()
-        self.log.debug("Completing command token among %s" % str(commands))
+        self.log.debug(f"Completing command token among {commands!s}")
 
         # Start with the possible commands
         completions = [command for command in commands if command.startswith(text)]
@@ -321,11 +319,10 @@ class ConfigShell:
 
         # Even a bookmark
         bookmarks = ['@' + bookmark for bookmark in self.prefs['bookmarks']
-                     if bookmark.startswith("%s" % text.lstrip('@'))]
-        self.log.debug("Found bookmarks %s." % str(bookmarks))
+                     if bookmark.startswith(text.lstrip('@'))]
+        self.log.debug(f"Found bookmarks {bookmarks!s}.")
         if bookmarks:
             completions.extend(bookmarks)
-
 
         # We are done
         return completions
@@ -342,8 +339,7 @@ class ConfigShell:
         if text.endswith('.'):
             text = text + '/'
         (basedir, slash, partial_name) = text.rpartition('/')
-        self.log.debug("Got basedir=%s, partial_name=%s"
-                       % (basedir, partial_name))
+        self.log.debug(f"Got basedir={basedir}, partial_name={partial_name}")
         basedir = basedir + slash
         target = self._current_node.get_node(basedir)
         names = [child.name for child in target.children]
@@ -354,21 +350,21 @@ class ConfigShell:
             # child allows for fast TAB action to add the only child's
             # name.
             if len(names) > 1:
-                completions.append("%s* " % basedir)
+                completions.append(f"{basedir}* ")
 
         for name in names:
             num_matches = 0
             if name.startswith(partial_name):
                 num_matches += 1
                 if num_matches == 1:
-                    completions.append("%s%s/" % (basedir, name))
+                    completions.append(f"{basedir}{name}/")
                 else:
-                    completions.append("%s%s" % (basedir, name))
+                    completions.append(f"{basedir}{name}")
 
         # Bookmarks
         bookmarks = ['@' + bookmark for bookmark in self.prefs['bookmarks']
-                     if bookmark.startswith("%s" % text.lstrip('@'))]
-        self.log.debug("Found bookmarks %s." % str(bookmarks))
+                     if bookmark.startswith(text.lstrip('@'))]
+        self.log.debug(f"Found bookmarks {bookmarks!s}.")
         if bookmarks:
             completions.extend(bookmarks)
 
@@ -413,8 +409,7 @@ class ConfigShell:
             current_parameters[key] = value
         self._completion_help_topic = command
         completion_method = target.get_completion_method(command)
-        self.log.debug("Command %s accepts parameters %s."
-                       % (command, cmd_params))
+        self.log.debug(f"Command {command} accepts parameters {cmd_params}.")
 
         # Do we still accept positional params ?
         pparam_ok = True
@@ -443,7 +438,7 @@ class ConfigShell:
             else:
                 pparam_index = len(pparams) - 1
             self._current_parameter = cmd_params[pparam_index]
-            self.log.debug("Completing pparam %s." % self._current_parameter)
+            self.log.debug(f"Completing pparam {self._current_parameter}.")
             if completion_method:
                 pparam_completions = completion_method(
                     current_parameters, text, self._current_parameter)
@@ -460,10 +455,8 @@ class ConfigShell:
                        if param not in kparams \
                        if param.startswith(text)]
 
-        self.log.debug("Possible pparam values are %s."
-                       % str(completions))
-        self.log.debug("Possible kparam keywords are %s."
-                       % str(keyword_completions))
+        self.log.debug(f"Possible pparam values are {completions!s}.")
+        self.log.debug(f"Possible kparam keywords are {keyword_completions!s}.")
 
         if keyword_completions:
             if self._current_parameter:
@@ -523,7 +516,7 @@ class ConfigShell:
 
                 completions.extend(free_completions)
 
-        self.log.debug("Found completions %s." % str(completions))
+        self.log.debug(f"Found completions {completions!s}.")
         return completions
 
     def _complete_token_kparam(self, text, path, command, pparams, kparams):
@@ -542,15 +535,13 @@ class ConfigShell:
         @return: Possible completions for the token.
         @rtype: list of str
         '''
-        self.log.debug("Called for text='%s'" % text)
+        self.log.debug(f"Called for text='{text}'")
         target = self._current_node.get_node(path)
         cmd_params = target.get_command_signature(command)[0]
-        self.log.debug("Command %s accepts parameters %s."
-                       % (command, cmd_params))
+        self.log.debug(f"Command {command} accepts parameters {cmd_params}.")
 
         (keyword, sep, current_value) = text.partition('=')
-        self.log.debug("Completing '%s' for kparam %s"
-                       % (current_value, keyword))
+        self.log.debug(f"Completing '{current_value}' for kparam {keyword}")
 
         self._current_parameter = keyword
         current_parameters = {}
@@ -569,9 +560,9 @@ class ConfigShell:
                 self.con.render_text(
                     self._current_parameter, self.prefs['color_parameter'])
 
-        self.log.debug("Found completions %s." % str(completions))
+        self.log.debug(f"Found completions {completions!s}.")
 
-        return ["%s=%s" % (keyword, completion) for completion in completions]
+        return [f"{keyword}={completion}" for completion in completions]
 
     def _complete(self, text, state):
         '''
@@ -658,12 +649,9 @@ class ConfigShell:
         '''
         completions = []
 
-        self.log.debug("Dispatching completion for %s token. "
-                       % current_token
-                       + "text='%s', path='%s', command='%s', "
-                       % (text, path, command)
-                       + "pparams=%s, kparams=%s"
-                       % (str(pparams), str(kparams)))
+        self.log.debug(f"Dispatching completion for {current_token} token. "
+                       f"text='{text}', path='{path}', command='{command}', "
+                       f"pparams={pparams!s}, kparams={kparams!s}")
 
         (path, iterall) = path.partition('*')[:2]
         if iterall:
@@ -692,8 +680,7 @@ class ConfigShell:
                     self._complete_token_kparam(text, cpl_path, command,
                                                 pparams, kparams)
         else:
-            self.log.debug("Cannot complete unknown token %s."
-                           % current_token)
+            self.log.debug(f"Cannot complete unknown token {current_token}.")
 
         return completions
 
@@ -706,14 +693,12 @@ class ConfigShell:
 
         if prompt_length and prompt_length < len(prompt_path):
             half = (prompt_length - 3) // 2
-            prompt_path = "%s...%s" \
-                    % (prompt_path[:half], prompt_path[-half:])
+            prompt_path = f"{prompt_path[:half]}...{prompt_path[-half:]}"
 
         if 'prompt_msg' in dir(self._current_node):
-            return "%s%s> " % (self._current_node.prompt_msg(),
-                               prompt_path)
+            return f"{self._current_node.prompt_msg()}{prompt_path}> "
         else:
-            return "%s> " % prompt_path
+            return f"{prompt_path}> "
 
     def _cli_loop(self):
         '''
@@ -737,8 +722,7 @@ class ConfigShell:
                     readline.write_history_file(self._cmd_history)
                 except OSError:
                     self.log.warning(
-                        "Cannot write to command history file %s." \
-                        % self._cmd_history)
+                        f"Cannot write to command history file {self._cmd_history}.")
                     self.log.warning(
                         "Saving command history has been disabled!")
                     self._save_history = False
@@ -770,9 +754,8 @@ class ConfigShell:
         if isinstance(parse_results.kparams, ParseResults):
             kparams = dict([kparam.value for kparam in parse_results.kparams])
 
-        self.log.debug("Parse gave path='%s' command='%s' " % (path, command)
-                       + "pparams=%s " % str(pparams)
-                       + "kparams=%s" % str(kparams))
+        self.log.debug(f"Parse gave path='{path}' command='{command}' "
+                       f"pparams={pparams!s} kparams={kparams!s}")
         return (parse_results, path, command, pparams, kparams)
 
     def _execute_command(self, path, command, pparams, kparams):
@@ -819,15 +802,15 @@ class ConfigShell:
             targets = target.children
         for target in targets:
             if iterall:
-                self.con.display("[%s]" % target.path)
+                self.con.display(f"[{target.path}]")
             result = target.execute_command(command, pparams, kparams)
-        self.log.debug("Command execution returned %r" % result)
+        self.log.debug(f"Command execution returned {result!r}")
         if isinstance(result, ConfigNode):
             self._current_node = result
         elif result == 'EXIT':
             self._exit = True
         elif result is not None:
-            raise ExecutionError("Unexpected result: %r" % result)
+            raise ExecutionError(f"Unexpected result: {result!r}")
 
     # Public methods
 
@@ -843,7 +826,7 @@ class ConfigShell:
         @type cmdline: str
         '''
         if cmdline:
-            self.log.verbose("Running command line '%s'." % cmdline)
+            self.log.verbose(f"Running command line '{cmdline}'.")
             path, command, pparams, kparams = self._parse_cmdline(cmdline)[1:]
             self._execute_command(path, command, pparams, kparams)
 
