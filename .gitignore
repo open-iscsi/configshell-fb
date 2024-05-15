@@ -22,3 +22,6 @@ debian/tmp/
 *.spec
 *.pyc
 rtslib-*
+venv/
+.idea
+*egg-info/
