@@ -14,10 +14,9 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License.
 '''
-
+import curses
 import inspect
 import re
-from contextlib import suppress
 
 
 class ExecutionError(Exception):
@@ -1001,7 +1000,6 @@ class ConfigNode:
             self.shell.log.info(f'Taking you back to {path}.')
             return self.get_node(path)
 
-        # Use an urwid walker to select the path
         if path is None:
             lines, paths = self._render_tree(self.get_root(), do_list=True)
             start_pos = paths.index(self.path)
@@ -1029,7 +1027,7 @@ class ConfigNode:
 
     def _lines_walker(self, lines, start_pos):
         '''
-        Using the curses urwid library, displays all lines passed as argument,
+        Using the curses library, displays all lines passed as argument,
         and after allowing selection of one line using up, down and enter keys,
         returns its index.
         @param lines: The lines to display and select from.
@@ -1039,34 +1037,43 @@ class ConfigNode:
         @return: the index of the selected line.
         @rtype: int
         '''
-        import urwid
 
-        palette = [('header', 'white', 'black'),
-                   ('reveal focus', 'black', 'yellow', 'standout')]
+        def draw_menu(stdscr, current_row):
+            stdscr.clear()
+            height, width = stdscr.getmaxyx()
 
-        content = urwid.SimpleListWalker(
-            [urwid.AttrMap(w, None, 'reveal focus')
-             for w in [urwid.Text(line) for line in lines]])
+            for idx, row in enumerate(lines):
+                x = width // 2 - len(row) // 2
+                y = height // 2 - len(lines) // 2 + idx
+                if idx == current_row:
+                    stdscr.attron(curses.color_pair(1))
+                    stdscr.addstr(y, x, row)
+                    stdscr.attroff(curses.color_pair(1))
+                else:
+                    stdscr.addstr(y, x, row)
 
-        listbox = urwid.ListBox(content)
-        frame = urwid.Frame(listbox)
+            stdscr.refresh()
 
-        def handle_input(input_):
-            for key in input_:
-                widget, pos = content.get_focus()
-                if key == 'up':
-                    if pos > 0:
-                        content.set_focus(pos-1)
-                elif key == 'down':
-                    with suppress(IndexError):
-                        content.set_focus(pos + 1)
-                elif key == 'enter':
-                    raise urwid.ExitMainLoop
+        def main(stdscr):
+            curses.start_color()
+            curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+            current_row = start_pos
+            draw_menu(stdscr, current_row)
 
-        content.set_focus(start_pos)
-        loop = urwid.MainLoop(frame, palette, input_filter=handle_input)
-        loop.run()
-        return listbox.focus_position
+            while True:
+                key = stdscr.getch()
+                if key == curses.KEY_UP and current_row > 0:
+                    current_row -= 1
+                elif key == curses.KEY_DOWN and current_row < len(lines) - 1:
+                    current_row += 1
+                elif key == curses.KEY_ENTER or key in (10, 13):
+                    break
+
+                draw_menu(stdscr, current_row)
+
+            return current_row
+
+        return curses.wrapper(main)
 
     def ui_complete_cd(self, parameters, text, current_param):
         '''
