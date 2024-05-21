@@ -1,0 +1,94 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling", "hatch-vcs"]
+
+[project]
+name = "configshell"
+description = "A framework to implement simple but nice CLIs."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+    {email = "agrover@redhat.com", name = "Andy Grover"},
+    {email = "jxm@risingtidesystems.com", name = "Jerome Martin"}
+]
+maintainers = [{email = "mlombard@redhat.com", name = "Maurizio Lombardi"}]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "pyparsing>=2.4.7, <4",  # 2.4.7 required for EL9 compatibility
+]
+dynamic = ["version"]
+
+[project.license-files]
+paths = ["COPYING"]
+
+[project.urls]
+Homepage = "http://github.com/open-iscsi/configshell-fb"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.envs.default]
+dependencies = [
+    "ruff",
+    "pre-commit",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "F",    # Pyflakes
+    "E",    # pycodestyle error
+    "W",    # pycodestyle warning
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "YTT",  # flake8-2020
+    "S",    # flake8-bandit
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "COM",  # flake8-commas
+    "C4",   # flake8-comprehensions
+    "EXE",  # flake8-executable
+    "FA",   # flake8-future-annotations
+    "ISC",  # flake8-implicit-str-concat
+    "ICN",  # flake8-import-conventions
+    "LOG",  # flake8-logging
+    "PIE",  # flake8-pie
+    "Q003", # flake8-quotes avoidable-escaped-quote
+    "Q004", # flake8-quotes unnecessary-escaped-quote
+    "RSE",  # flake8-raise
+    "RET",  # flake8-return
+    "SIM",  # flake8-simplify
+    "TID",  # flake8-tidy-imports
+    "INT",  # flake8-gettext
+    "ARG",  # flake8-unused-argument
+    "PTH",  # flake8-use-pathlib
+    "PL",   # Pylint
+    "FLY",  # flynt
+    "PERF", # Perflint
+    "FURB", # refurb
+    "RUF",  # Ruff
+]
+ignore = [
+    "RUF012",  # TODO Mutable class attributes should be annotated with `typing.ClassVar`
+    "B904",    # raise-without-from-inside-except
+    "PLR09",   # Too many branches/statements/arguments
+    "S105",    # Possible hardcoded password assigned
+    "RET505",  # Unnecessary `else` after `return` statement
+    "PLW2901", # TODO `for` loop variable overwritten by assignment target
+    "UP031",   # TODO Use format specifiers instead of percent format
+    "SIM102",  # Use a single if statement instead of nested if statements
+    "SIM108",  # Use ternary operator {contents} instead of if-else-block
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Possible hardcoded password assigned to: "current_token"
+"configshell/shell" = ["S105"]

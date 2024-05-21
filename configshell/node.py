@@ -14,14 +14,16 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License.
 '''
-
+import curses
 import inspect
 import re
+
 
 class ExecutionError(Exception):
     pass
 
-class ConfigNode(object):
+
+class ConfigNode:
     '''
     The ConfigNode class defines a common skeleton to be used by specific
     implementation. It is "purely virtual" (sorry for using non-pythonic
@@ -82,26 +84,24 @@ class ConfigNode(object):
         @type shell: ConfigShell
         '''
         self._name = name
-        self._children = set([])
+        self._children = set()
         if parent is None:
             if shell is None:
                 raise ValueError("A root ConfigNode must have a shell.")
-            else:
-                self._parent = None
-                self._shell = shell
-                shell.attach_root_node(self)
+
+            self._parent = None
+            self._shell = shell
+            shell.attach_root_node(self)
+        elif shell is None:
+            self._parent = parent
+            self._shell = None
         else:
-            if shell is None:
-                self._parent = parent
-                self._shell = None
-            else:
-                raise ValueError("A non-root ConfigNode can't have a shell.")
+            raise ValueError("A non-root ConfigNode can't have a shell.")
 
         if self._parent is not None:
             for sibling in self._parent._children:
                 if sibling.name == name:
-                    raise ValueError("Name '%s' already used by a sibling."
-                                     % self._name)
+                    raise ValueError(f"Name '{self._name}' already used by a sibling.")
             self._parent._children.add(self)
 
         self._configuration_groups = {}
@@ -189,8 +189,7 @@ class ConfigNode(object):
             try:
                 value = int(value)
             except ValueError:
-                raise ValueError("Syntax error, '%s' is not a %s."
-                                 % (value, syntax))
+                raise ValueError(f"Syntax error, '{value}' is not a {syntax}.")
             else:
                 return value
 
@@ -229,8 +228,7 @@ class ConfigNode(object):
             try:
                 value = str(value)
             except ValueError:
-                raise ValueError("Syntax error, '%s' is not a %s."
-                                 % (value, syntax))
+                raise ValueError(f"Syntax error, '{value}' is not a {syntax}.")
             else:
                 return value
 
@@ -268,8 +266,7 @@ class ConfigNode(object):
         elif value.lower() == 'false':
             return False
         else:
-            raise ValueError("Syntax error, '%s' is not %s."
-                             % (value, syntax))
+            raise ValueError(f"Syntax error, '{value}' is not {syntax}.")
 
     def ui_type_loglevel(self, value=None, enum=False, reverse=False):
         '''
@@ -303,8 +300,7 @@ class ConfigNode(object):
         elif value in type_enum:
             return value
         else:
-            raise ValueError("Syntax error, '%s' is not %s"
-                             % (value, syntax))
+            raise ValueError(f"Syntax error, '{value}' is not {syntax}")
 
     def ui_type_color(self, value=None, enum=False, reverse=False):
         '''
@@ -328,7 +324,7 @@ class ConfigNode(object):
             else:
                 return 'default'
 
-        type_enum = self.shell.con.colors + ['default']
+        type_enum = [*self.shell.con.colors, 'default']
         syntax = '|'.join(type_enum)
         if value is None:
             if enum:
@@ -340,8 +336,7 @@ class ConfigNode(object):
         elif value in type_enum:
             return value
         else:
-            raise ValueError("Syntax error, '%s' is not %s"
-                             % (value, syntax))
+            raise ValueError(f"Syntax error, '{value}' is not {syntax}")
 
     def ui_type_colordefault(self, value=None, enum=False, reverse=False):
         '''
@@ -365,7 +360,7 @@ class ConfigNode(object):
             else:
                 return 'none'
 
-        type_enum = self.shell.con.colors + ['none']
+        type_enum = [*self.shell.con.colors, 'none']
         syntax = '|'.join(type_enum)
         if value is None:
             if enum:
@@ -377,8 +372,7 @@ class ConfigNode(object):
         elif value in type_enum:
             return value
         else:
-            raise ValueError("Syntax error, '%s' is not %s"
-                             % (value, syntax))
+            raise ValueError(f"Syntax error, '{value}' is not {syntax}")
 
 
     # User interface get/set methods
@@ -424,7 +418,7 @@ class ConfigNode(object):
         '''
         return self.shell.prefs[parameter]
 
-    def ui_eval_param(self, ui_value, type, default):
+    def ui_eval_param(self, ui_value, type, default):  # noqa: A002
         '''
         Evaluates a user-provided parameter value using a given type helper.
         If the parameter value is None, the default will be returned. If the
@@ -433,8 +427,8 @@ class ConfigNode(object):
 
         @param ui_value: The user provided parameter value.
         @type ui_value: str
-        @param type: The ui_type to be used
-        @type type: str
+        @param type_: The ui_type to be used
+        @type type_: str
         @param default: The default value to return.
         @type default: any
         @return: The evaluated parameter value.
@@ -452,11 +446,11 @@ class ConfigNode(object):
             else:
                 return value
 
-    def get_type_method(self, type):
+    def get_type_method(self, type):  # noqa: A002
         '''
         Returns the type helper method matching the type name.
         '''
-        return getattr(self, "%s%s" % (self.ui_type_method_prefix, type))
+        return getattr(self, f"{self.ui_type_method_prefix}{type}")
 
     # User interface commands
 
@@ -480,49 +474,46 @@ class ConfigNode(object):
             self.shell.con.epy_write('''
                                      AVAILABLE CONFIGURATION GROUPS
                                      ==============================
-                                     %s\n
-                                     ''' % ' '.join(self.list_config_groups()))
+                                     {}\n
+                                     '''.format(' '.join(self.list_config_groups())))
         elif not parameter:
             if group not in self.list_config_groups():
-                raise ExecutionError("Unknown configuration group: %s" % group)
+                raise ExecutionError(f"Unknown configuration group: {group}")
 
-            section = "%s CONFIG GROUP" % group.upper()
+            section = f"{group.upper()} CONFIG GROUP"
             underline1 = ''.ljust(len(section), '=')
             parameters = ''
             for p_name in self.list_group_params(group, writable=True):
                 p_def = self.get_group_param(group, p_name)
                 type_method = self.get_type_method(p_def['type'])
-                p_name = "%s=%s" % (p_def['name'], p_def['type'])
+                p_name = f"{p_def['name']}={p_def['type']}"
                 underline2 = ''.ljust(len(p_name), '-')
-                parameters += '%s\n%s\n%s\n\n' \
-                        % (p_name, underline2, p_def['description'])
-            self.shell.con.epy_write('''%s\n%s\n%s\n'''
-                                     % (section, underline1, parameters))
+                parameters += f"{p_name}\n{underline2}\n{p_def['description']}\n\n"
+            self.shell.con.epy_write(f"{section}\n{underline1}\n{parameters}")
 
         elif group not in self.list_config_groups():
-            raise ExecutionError("Unknown configuration group: %s" % group)
+            raise ExecutionError(f"Unknown configuration group: {group}")
 
         for param, value in parameter.items():
             if param not in self.list_group_params(group):
-                raise ExecutionError("Unknown parameter %s in group '%s'."
-                                     % (param, group))
+                raise ExecutionError(f"Unknown parameter {param} in group '{group}'.")
 
             p_def = self.get_group_param(group, param)
             type_method = self.get_type_method(p_def['type'])
             if not p_def['writable']:
-                raise ExecutionError("Parameter %s is read-only." % param)
+                raise ExecutionError(f"Parameter {param} is read-only.")
 
             try:
                 value = type_method(value)
             except ValueError as msg:
-                raise ExecutionError("Not setting %s! %s" % (param, msg))
+                raise ExecutionError(f"Not setting {param}! {msg}")
 
             group_setter = self.get_group_setter(group)
             group_setter(param, value)
             group_getter = self.get_group_getter(group)
             value = group_getter(param)
             value = type_method(value, reverse=True)
-            self.shell.con.display("Parameter %s is now '%s'." % (param, value))
+            self.shell.con.display(f"Parameter {param} is now '{value}'.")
 
     def ui_complete_set(self, parameters, text, current_param):
         '''
@@ -538,8 +529,9 @@ class ConfigNode(object):
         '''
         completions = []
 
-        self.shell.log.debug("Called with params=%s, text='%s', current='%s'"
-                             % (str(parameters), text, current_param))
+        self.shell.log.debug(f"Called with params={parameters!s}, "
+                             f"text='{text}', "
+                             f"current='{current_param}'")
 
         if current_param == 'group':
             completions = [group for group in self.list_config_groups()
@@ -566,7 +558,7 @@ class ConfigNode(object):
         if len(completions) == 1 and not completions[0].endswith('='):
             completions = [completions[0] + ' ']
 
-        self.shell.log.debug("Returning completions %s." % str(completions))
+        self.shell.log.debug(f"Returning completions {completions!s}.")
         return completions
 
     def ui_command_get(self, group=None, *parameter):
@@ -588,13 +580,13 @@ class ConfigNode(object):
             self.shell.con.epy_write('''
                                      AVAILABLE CONFIGURATION GROUPS
                                      ==============================
-                                     %s\n
-                                     ''' % ' '.join(self.list_config_groups()))
+                                     {}\n
+                                     '''.format(' '.join(self.list_config_groups())))
         elif not parameter:
             if group not in self.list_config_groups():
-                raise ExecutionError("Unknown configuration group: %s" % group)
+                raise ExecutionError(f"Unknown configuration group: {group}")
 
-            section = "%s CONFIG GROUP" % group.upper()
+            section = f"{group.upper()} CONFIG GROUP"
             underline1 = ''.ljust(len(section), '=')
             parameters = ''
             params = [self.get_group_param(group, p_name)
@@ -604,23 +596,20 @@ class ConfigNode(object):
                 value = group_getter(p_def['name'])
                 type_method = self.get_type_method(p_def['type'])
                 value = type_method(value, reverse=True)
-                param = "%s=%s" % (p_def['name'], value)
+                param = f"{p_def['name']}={value}"
                 if p_def['writable'] is False:
                     param += " [ro]"
                 underline2 = ''.ljust(len(param), '-')
-                parameters += '%s\n%s\n%s\n\n' \
-                        % (param, underline2, p_def['description'])
+                parameters += f"{param}\n{underline2}\n{p_def['description']}\n\n"
 
-            self.shell.con.epy_write('''%s\n%s\n%s\n'''
-                                     % (section, underline1, parameters))
+            self.shell.con.epy_write(f"{section}\n{underline1}\n{parameters}")
 
         elif group not in self.list_config_groups():
-            raise ExecutionError("Unknown configuration group: %s" % group)
+            raise ExecutionError(f"Unknown configuration group: {group}")
 
         for param in parameter:
             if param not in self.list_group_params(group):
-                raise ExecutionError("No parameter '%s' in group '%s'."
-                                     % (param, group))
+                raise ExecutionError(f"No parameter '{param}' in group '{group}'.")
 
             self.shell.log.debug("About to get the parameter's value.")
             group_getter = self.get_group_getter(group)
@@ -628,12 +617,8 @@ class ConfigNode(object):
             p_def = self.get_group_param(group, param)
             type_method = self.get_type_method(p_def['type'])
             value = type_method(value, reverse=True)
-            if p_def['writable']:
-                writable = ""
-            else:
-                writable = "[ro]"
-            self.shell.con.display("%s=%s %s"
-                                   % (param, value, writable))
+            writable = '' if p_def['writable'] else '[ro]'
+            self.shell.con.display(f"{param}={value} {writable}")
 
     def ui_complete_get(self, parameters, text, current_param):
         '''
@@ -649,8 +634,9 @@ class ConfigNode(object):
         '''
         completions = []
 
-        self.shell.log.debug("Called with params=%s, text='%s', current='%s'"
-                             % (str(parameters), text, current_param))
+        self.shell.log.debug(f"Called with params={parameters!s}, "
+                             f"text='{text}', "
+                             f"current='{current_param}'")
 
         if current_param == 'group':
             completions = [group for group in self.list_config_groups()
@@ -668,7 +654,7 @@ class ConfigNode(object):
         if len(completions) == 1 and not completions[0].endswith('='):
             completions = [completions[0] + ' ']
 
-        self.shell.log.debug("Returning completions %s." % str(completions))
+        self.shell.log.debug(f"Returning completions {completions!s}.")
         return completions
 
     def ui_command_ls(self, path=None, depth=None):
@@ -739,9 +725,7 @@ class ConfigNode(object):
         else:
             root_call = False
 
-        if do_list:
-            color = None
-        elif not level % 3:
+        if do_list or not level % 3:
             color = None
         elif not (level - 1) % 3:
             color = 'blue'
@@ -831,7 +815,7 @@ class ConfigNode(object):
 
         line += name
         if self.shell.prefs['tree_status_mode']:
-            line += ' %s%s' % (pad, summary)
+            line += f' {pad}{summary}'
 
         lines.append(line)
         paths.append(root.path)
@@ -841,14 +825,14 @@ class ConfigNode(object):
            and not do_list:
             tree = ''
             for child in children:
-                tree = tree + self._render_tree(child, [False], depth)
+                tree += self._render_tree(child, [False], depth)
         else:
             tree = line + '\n'
             if depth is None or depth > 0:
                 if depth is not None:
-                    depth = depth - 1
+                    depth -= 1
                 for i in range(len(children)):
-                    margin.append(i<len(children)-1)
+                    margin.append(i < len(children) - 1)
                     if do_list:
                         new_lines, new_paths = \
                                 self._render_tree(children[i], margin, depth,
@@ -856,8 +840,7 @@ class ConfigNode(object):
                         lines.extend(new_lines)
                         paths.extend(new_paths)
                     else:
-                        tree = tree \
-                                + self._render_tree(children[i], margin, depth)
+                        tree += self._render_tree(children[i], margin, depth)
                     margin.pop()
 
         if root_call:
@@ -865,14 +848,13 @@ class ConfigNode(object):
                 return (lines, paths)
             else:
                 return tree[:-1]
+        elif do_list:
+            return (lines, paths)
         else:
-            if do_list:
-                return (lines, paths)
-            else:
-                return tree
+            return tree
 
 
-    def ui_complete_ls(self, parameters, text, current_param):
+    def ui_complete_ls(self, parameters, text, current_param):  # noqa: ARG002 TODO
         '''
         Parameter auto-completion method for user command ls.
         @param parameters: Parameters on the command line.
@@ -886,7 +868,7 @@ class ConfigNode(object):
         '''
         if current_param == 'path':
             (basedir, slash, partial_name) = text.rpartition('/')
-            basedir = basedir + slash
+            basedir += slash
             target = self.get_node(basedir)
             names = [child.name for child in target.children]
             completions = []
@@ -895,22 +877,21 @@ class ConfigNode(object):
                 if name.startswith(partial_name):
                     num_matches += 1
                     if num_matches == 1:
-                        completions.append("%s%s/" % (basedir, name))
+                        completions.append(f"{basedir}{name}/")
                     else:
-                        completions.append("%s%s" % (basedir, name))
-            if len(completions) == 1:
-                if not self.get_node(completions[0]).children:
-                    completions[0] = completions[0].rstrip('/') + ' '
+                        completions.append(f"{basedir}{name}")
+            if len(completions) == 1 and not self.get_node(completions[0]).children:
+                completions[0] = completions[0].rstrip('/') + ' '
 
             # Bookmarks
             bookmarks = ['@' + bookmark for bookmark
                          in self.shell.prefs['bookmarks']
                          if ('@' + bookmark).startswith(text)]
-            self.shell.log.debug("Found bookmarks %s." % str(bookmarks))
+            self.shell.log.debug(f"Found bookmarks {bookmarks!s}.")
             if bookmarks:
                 completions.extend(bookmarks)
 
-            self.shell.log.debug("Completions are %s." % str(completions))
+            self.shell.log.debug(f"Completions are {completions!s}.")
             return completions
 
         elif current_param == 'depth':
@@ -920,9 +901,10 @@ class ConfigNode(object):
                 except ValueError:
                     self.shell.log.debug("Text is not a number.")
                     return []
-            return [ text + number for number
+            return [text + number for number
                     in [str(num) for num in range(10)]
                     if (text + number).startswith(text)]
+        return None
 
     def ui_command_cd(self, path=None):
         '''
@@ -959,7 +941,7 @@ class ConfigNode(object):
         ========
         ls cd
         '''
-        self.shell.log.debug("Changing current node to '%s'." % path)
+        self.shell.log.debug(f"Changing current node to '{path}'.")
 
         if self.shell.prefs['path_history'] is None:
             self.shell.prefs['path_history'] = [self.path]
@@ -973,8 +955,7 @@ class ConfigNode(object):
             exists = False
             while not exists:
                 if self.shell.prefs['path_history_index'] > 0:
-                    self.shell.prefs['path_history_index'] = \
-                            self.shell.prefs['path_history_index'] - 1
+                    self.shell.prefs['path_history_index'] -= 1
                     index = self.shell.prefs['path_history_index']
                     path = self.shell.prefs['path_history'][index]
                     try:
@@ -988,7 +969,7 @@ class ConfigNode(object):
                     self.shell.prefs['path_history_index'] = 0
                     self.shell.prefs['path_history'][0] = '/'
                     exists = True
-            self.shell.log.info('Taking you back to %s.' % path)
+            self.shell.log.info(f'Taking you back to {path}.')
             return self.get_node(path)
 
         # Go forward in history
@@ -1001,8 +982,7 @@ class ConfigNode(object):
             while not exists:
                 if self.shell.prefs['path_history_index'] \
                    < len(self.shell.prefs['path_history']) - 1:
-                    self.shell.prefs['path_history_index'] = \
-                            self.shell.prefs['path_history_index'] + 1
+                    self.shell.prefs['path_history_index'] += 1
                     index = self.shell.prefs['path_history_index']
                     path = self.shell.prefs['path_history'][index]
                     try:
@@ -1017,10 +997,9 @@ class ConfigNode(object):
                             = len(self.shell.prefs['path_history'])
                     self.shell.prefs['path_history'].append(path)
                     exists = True
-            self.shell.log.info('Taking you back to %s.' % path)
+            self.shell.log.info(f'Taking you back to {path}.')
             return self.get_node(path)
 
-        # Use an urwid walker to select the path
         if path is None:
             lines, paths = self._render_tree(self.get_root(), do_list=True)
             start_pos = paths.index(self.path)
@@ -1037,7 +1016,7 @@ class ConfigNode(object):
         if target_node.path != self.shell.prefs['path_history'][index]:
             # Truncate the hostory to retain current path as last one
             self.shell.prefs['path_history'] = \
-                    self.shell.prefs['path_history'][:index+1]
+                    self.shell.prefs['path_history'][:index + 1]
             # Append the new path and update the index
             self.shell.prefs['path_history'].append(target_node.path)
             self.shell.prefs['path_history_index'] = index + 1
@@ -1048,7 +1027,7 @@ class ConfigNode(object):
 
     def _lines_walker(self, lines, start_pos):
         '''
-        Using the curses urwid library, displays all lines passed as argument,
+        Using the curses library, displays all lines passed as argument,
         and after allowing selection of one line using up, down and enter keys,
         returns its index.
         @param lines: The lines to display and select from.
@@ -1058,36 +1037,43 @@ class ConfigNode(object):
         @return: the index of the selected line.
         @rtype: int
         '''
-        import urwid
 
-        palette = [('header', 'white', 'black'),
-                   ('reveal focus', 'black', 'yellow', 'standout')]
+        def draw_menu(stdscr, current_row):
+            stdscr.clear()
+            height, width = stdscr.getmaxyx()
 
-        content = urwid.SimpleListWalker(
-            [urwid.AttrMap(w, None, 'reveal focus')
-             for w in [urwid.Text(line) for line in lines]])
+            for idx, row in enumerate(lines):
+                x = width // 2 - len(row) // 2
+                y = height // 2 - len(lines) // 2 + idx
+                if idx == current_row:
+                    stdscr.attron(curses.color_pair(1))
+                    stdscr.addstr(y, x, row)
+                    stdscr.attroff(curses.color_pair(1))
+                else:
+                    stdscr.addstr(y, x, row)
 
-        listbox = urwid.ListBox(content)
-        frame = urwid.Frame(listbox)
+            stdscr.refresh()
 
-        def handle_input(input, raw):
-            for key in input:
-                widget, pos = content.get_focus()
-                if key == 'up':
-                    if pos > 0:
-                        content.set_focus(pos-1)
-                elif key == 'down':
-                    try:
-                        content.set_focus(pos+1)
-                    except IndexError:
-                        pass
-                elif key == 'enter':
-                    raise urwid.ExitMainLoop()
+        def main(stdscr):
+            curses.start_color()
+            curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+            current_row = start_pos
+            draw_menu(stdscr, current_row)
 
-        content.set_focus(start_pos)
-        loop = urwid.MainLoop(frame, palette, input_filter=handle_input)
-        loop.run()
-        return listbox.focus_position
+            while True:
+                key = stdscr.getch()
+                if key == curses.KEY_UP and current_row > 0:
+                    current_row -= 1
+                elif key == curses.KEY_DOWN and current_row < len(lines) - 1:
+                    current_row += 1
+                elif key == curses.KEY_ENTER or key in (10, 13):
+                    break
+
+                draw_menu(stdscr, current_row)
+
+            return current_row
+
+        return curses.wrapper(main)
 
     def ui_complete_cd(self, parameters, text, current_param):
         '''
@@ -1103,9 +1089,10 @@ class ConfigNode(object):
         '''
         if current_param == 'path':
             completions = self.ui_complete_ls(parameters, text, current_param)
-            completions.extend([nav for nav in ['<', '>']
+            completions.extend([nav for nav in ('<', '>')
                                 if nav.startswith(text)])
             return completions
+        return None
 
     def ui_command_help(self, topic=None):
         '''
@@ -1123,31 +1110,31 @@ class ConfigNode(object):
 
                                    ''')
             for command in commands:
-                msg += "  - %s\n" % self.get_command_syntax(command)[0]
+                msg += f"  - {self.get_command_syntax(command)[0]}\n"
             msg += "\n"
             self.shell.con.epy_write(msg)
             return
 
         if topic not in commands:
-            raise ExecutionError("Cannot find help topic %s." % topic)
+            raise ExecutionError(f"Cannot find help topic {topic}.")
 
         syntax, comments, defaults = self.get_command_syntax(topic)
-        msg = self.shell.con.dedent('''
+        msg = self.shell.con.dedent(f'''
                              SYNTAX
                              ======
-                             %s
+                             {syntax}
 
-                             ''' % syntax)
+                             ''')
         for comment in comments:
             msg += comment + '\n'
 
         if defaults:
-            msg += self.shell.con.dedent('''
+            msg += self.shell.con.dedent(f'''
                                   DEFAULT VALUES
                                   ==============
-                                  %s
+                                  {defaults}
 
-                                  ''' % defaults)
+                                  ''')
         msg += self.shell.con.dedent('''
                               DESCRIPTION
                               ===========
@@ -1156,7 +1143,7 @@ class ConfigNode(object):
         msg += "\n"
         self.shell.con.epy_write(msg)
 
-    def ui_complete_help(self, parameters, text, current_param):
+    def ui_complete_help(self, parameters, text, current_param):  # noqa: ARG002 TODO
         '''
         Parameter auto-completion method for user command help.
         @param parameters: Parameters on the command line.
@@ -1226,24 +1213,25 @@ class ConfigNode(object):
         '''
         if action == 'add' and bookmark:
             if bookmark in self.shell.prefs['bookmarks']:
-                raise ExecutionError("Bookmark %s already exists." % bookmark)
+                raise ExecutionError(f"Bookmark {bookmark} already exists.")
 
             self.shell.prefs['bookmarks'][bookmark] = self.path
             # No way Prefs is going to account for that :-(
             self.shell.prefs.save()
-            self.shell.log.info("Bookmarked %s as %s."
-                                % (self.path, bookmark))
+            self.shell.log.info(f"Bookmarked {self.path} as {bookmark}.")
+            return None
         elif action == 'del' and bookmark:
             if bookmark not in self.shell.prefs['bookmarks']:
-                raise ExecutionError("No such bookmark %s." % bookmark)
+                raise ExecutionError(f"No such bookmark {bookmark}.")
 
             del self.shell.prefs['bookmarks'][bookmark]
             # No way Prefs is going to account for that deletion
             self.shell.prefs.save()
-            self.shell.log.info("Deleted bookmark %s." % bookmark)
+            self.shell.log.info(f"Deleted bookmark {bookmark}.")
+            return None
         elif action == 'go' and bookmark:
             if bookmark not in self.shell.prefs['bookmarks']:
-                raise ExecutionError("No such bookmark %s." % bookmark)
+                raise ExecutionError(f"No such bookmark {bookmark}.")
             return self.ui_command_cd(
                 self.shell.prefs['bookmarks'][bookmark])
         elif action == 'show':
@@ -1260,8 +1248,9 @@ class ConfigNode(object):
                     if len(bookmark) == 1:
                         bookmark += '\0'
                     underline = ''.ljust(len(bookmark), '-')
-                    bookmarks += "%s\n%s\n%s\n\n" % (bookmark, underline, path)
+                    bookmarks += f"{bookmark}\n{underline}\n{path}\n\n"
             self.shell.con.epy_write(bookmarks)
+            return None
         else:
             raise ExecutionError("Syntax error, see 'help bookmarks'.")
 
@@ -1278,14 +1267,13 @@ class ConfigNode(object):
         @rtype: list of str
         '''
         if current_param == 'action':
-            completions = [action for action in ['add', 'del', 'go', 'show']
+            completions = [action for action in ('add', 'del', 'go', 'show')
                            if action.startswith(text)]
         elif current_param == 'bookmark':
-            if 'action' in parameters:
-                if parameters['action'] not in ['show', 'add']:
-                    completions = [mark for mark
-                                   in self.shell.prefs['bookmarks']
-                                   if mark.startswith(text)]
+            if 'action' in parameters and parameters['action'] not in {'show', 'add'}:
+                completions = [mark for mark
+                               in self.shell.prefs['bookmarks']
+                               if mark.startswith(text)]
         else:
             completions = []
 
@@ -1375,7 +1363,7 @@ class ConfigNode(object):
         '''
         return ('', None)
 
-    def execute_command(self, command, pparams=[], kparams={}):
+    def execute_command(self, command, pparams=[], kparams={}):  # noqa: B006 TODO Do not use mutable data structures for argument defaults
         '''
         Execute a user command on the node. This works by finding out which is
         the support command method, using ConfigNode naming convention:
@@ -1393,14 +1381,14 @@ class ConfigNode(object):
         they are interpreted by ConfigShell.
         @rtype: str or ConfigNode or None
         '''
-        self.shell.log.debug("Executing command %s " % command
-                             + "with pparams %s " % pparams
-                             + "and kparams %s." % kparams)
+        self.shell.log.debug(f"Executing command {command} "
+                             f"with pparams {pparams} "
+                             f"and kparams {kparams}.")
 
         if command in self.list_commands():
             method = self.get_command_method(command)
         else:
-            raise ExecutionError("Command not found %s" % command)
+            raise ExecutionError(f"Command not found {command}")
 
         self.assert_params(method, pparams, kparams)
         return method(*pparams, **kparams)
@@ -1444,38 +1432,35 @@ class ConfigNode(object):
 
         self.shell.log.debug("Min params: %d" % nb_min_params)
         self.shell.log.debug("Max params: %d" % nb_max_params)
-        self.shell.log.debug("Required params: %s" % ", ".join(req_params))
-        self.shell.log.debug("Optional params: %s" % ", ".join(opt_params))
-        self.shell.log.debug("Got %s standard params." % nb_standard_params)
-        self.shell.log.debug("Got %s extended params." %  nb_extended_params)
-        self.shell.log.debug("Variable positional params: %s" % pp)
-        self.shell.log.debug("Variable keyword params: %s" % kw)
+        self.shell.log.debug(f"Required params: {', '.join(req_params)}")
+        self.shell.log.debug(f"Optional params: {', '.join(opt_params)}")
+        self.shell.log.debug(f"Got {nb_standard_params} standard params.")
+        self.shell.log.debug(f"Got {nb_extended_params} extended params.")
+        self.shell.log.debug(f"Variable positional params: {pp}")
+        self.shell.log.debug(f"Variable keyword params: {kw}")
 
         if len(missing_params) == 1:
             raise ExecutionError(
-                "Missing required parameter %s"
-                % missing_params[0])
-        elif missing_params:
+                f"Missing required parameter {missing_params[0]}")
+        if missing_params:
             raise ExecutionError(
-                "Missing required parameters %s"
-                % ", ".join("'%s'" % missing for missing in missing_params))
+                "Missing required parameters {}".format(", ".join(
+                    f"'{missing}'" for missing in missing_params)))
 
         if kw is None:
             if len(unexpected_keywords) == 1:
                 raise ExecutionError(
-                    "Unexpected keyword parameter '%s'."
-                    % unexpected_keywords[0])
-            elif unexpected_keywords:
+                    f"Unexpected keyword parameter '{unexpected_keywords[0]}'.")
+            if unexpected_keywords:
                 raise ExecutionError(
-                    "Unexpected keyword parameters %s."
-                    % ", ".join("'%s'" % kw for kw in unexpected_keywords))
+                    "Unexpected keyword parameters {}.".format(", ".join(
+                        f"'{kw}'" for kw in unexpected_keywords)))
         all_params = args[:len(pparams)]
         all_params.extend(kparams.keys())
         for param in all_params:
             if all_params.count(param) > 1:
                 raise ExecutionError(
-                    "Duplicate parameter %s."
-                    % param)
+                    f"Duplicate parameter {param}.")
 
         if nb_opt_params == 0 \
            and nb_standard_params != nb_min_params \
@@ -1508,7 +1493,7 @@ class ConfigNode(object):
         @rtype: method object
         '''
         prefix = self.ui_getgroup_method_prefix
-        return getattr(self, '%s%s' % (prefix, group))
+        return getattr(self, f'{prefix}{group}')
 
     def get_group_setter(self, group):
         '''
@@ -1518,7 +1503,7 @@ class ConfigNode(object):
         @rtype: method object
         '''
         prefix = self.ui_setgroup_method_prefix
-        return getattr(self, '%s%s' % (prefix, group))
+        return getattr(self, f'{prefix}{group}')
 
     def get_command_method(self, command):
         '''
@@ -1530,11 +1515,10 @@ class ConfigNode(object):
         '''
         prefix = self.ui_command_method_prefix
         if command in self.list_commands():
-            return getattr(self, '%s%s' % (prefix, command))
+            return getattr(self, f'{prefix}{command}')
         else:
-            self.shell.log.debug('No command named %s in %s (%s)'
-                                 % (command, self.name, self.path))
-            raise ValueError('No command named "%s".' % command)
+            self.shell.log.debug(f'No command named {command} in {self.name} ({self.path})')
+            raise ValueError(f'No command named "{command}".')
 
     def get_completion_method(self, command):
         '''
@@ -1545,7 +1529,7 @@ class ConfigNode(object):
         '''
         prefix = self.ui_complete_method_prefix
         try:
-            method = getattr(self, '%s%s' % (prefix, command))
+            method = getattr(self, f'{prefix}{command}')
         except AttributeError:
             return None
         else:
@@ -1589,32 +1573,32 @@ class ConfigNode(object):
             required_parameters = parameters
             optional_parameters = []
 
-        self.shell.log.debug("Required: %s" % str(required_parameters))
-        self.shell.log.debug("Optional: %s" % str(optional_parameters))
+        self.shell.log.debug(f"Required: {required_parameters!s}")
+        self.shell.log.debug(f"Optional: {optional_parameters!s}")
 
-        syntax = "%s " % command
+        syntax = f"{command} "
 
         required_parameters_str = ''
         for param in required_parameters:
-            required_parameters_str += "%s " % param
+            required_parameters_str += f"{param} "
         syntax += required_parameters_str
 
         optional_parameters_str = ''
         for param in optional_parameters:
-            optional_parameters_str += "[%s] " % param
+            optional_parameters_str += f"[{param}] "
         syntax += optional_parameters_str
 
         comments = []
         if spec.varargs is not None:
-            syntax += "[%s...] " % spec.varargs
+            syntax += f"[{spec.varargs}...] "
         if spec.varkw is not None:
-            syntax += "[%s=value...] " % (spec.varkw)
+            syntax += f"[{spec.varkw}=value...] "
 
         default_values = ''
         if num_defaults > 0:
             for index, param in enumerate(optional_parameters):
                 if spec.defaults[index] is not None:
-                    default_values += "%s=%s " % (param, str(spec.defaults[index]))
+                    default_values += f"{param}={spec.defaults[index]!s} "
 
         return syntax, comments, default_values
 
@@ -1640,10 +1624,7 @@ class ConfigNode(object):
             free_kparams = spec.varkw
         else:
             free_kparams = False
-        self.shell.log.debug("Signature is %s, %s, %s."
-                             % (str(parameters),
-                                str(free_pparams),
-                                str(free_kparams)))
+        self.shell.log.debug(f"Signature is {parameters!s}, {free_pparams!s}, {free_kparams!s}.")
         return parameters, free_pparams, free_kparams
 
     def get_root(self):
@@ -1656,7 +1637,7 @@ class ConfigNode(object):
         else:
             return self.parent.get_root()
 
-    def define_config_group_param(self, group, param, type,
+    def define_config_group_param(self, group, param, type,  # noqa: A002
                                   description=None, writable=True):
         '''
         Helper to define configuration group parameters.
@@ -1673,7 +1654,7 @@ class ConfigNode(object):
             self._configuration_groups[group] = {}
 
         if description is None:
-            description = "The %s %s parameter." % (param, group)
+            description = f"The {param} {group} parameter."
 
         # Fail early if the type and set/get helpers don't exist
         self.get_type_method(type)
@@ -1724,15 +1705,14 @@ class ConfigNode(object):
         @raise ValueError: If the parameter or group does not exist.
         '''
         if group not in self.list_config_groups():
-            raise ValueError("Not such configuration group %s" % group)
+            raise ValueError(f"Not such configuration group {group}")
         if param not in self.list_group_params(group):
-            raise ValueError("Not such parameter %s in configuration group %s"
-                             % (param, group))
+            raise ValueError(f"Not such parameter {param} in configuration group {group}")
         (p_type, p_description, p_writable) = \
                 self._configuration_groups[group][param]
 
-        return dict(name=param, group=group, type=p_type,
-                    description=p_description, writable=p_writable)
+        return {'name': param, 'group': group, 'type': p_type,
+                    'description': p_description, 'writable': p_writable}
 
     shell = property(_get_shell,
                      doc="Gets the shell attached to ConfigNode tree.")
@@ -1754,10 +1734,7 @@ class ConfigNode(object):
         @return: Wether or not we are a root node.
         @rtype: bool
         '''
-        if self._parent is None:
-            return True
-        else:
-            return False
+        return self._parent is None
 
     def get_child(self, name):
         '''
@@ -1770,9 +1747,7 @@ class ConfigNode(object):
         for child in self._children:
             if child.name == name:
                 return child
-        else:
-            raise ValueError("No such path %s/%s"
-                             % (self.path.rstrip('/'), name))
+        raise ValueError(f"No such path {self.path.rstrip('/')}/{name}")
 
     def remove_child(self, child):
         '''
@@ -1816,13 +1791,13 @@ class ConfigNode(object):
             if bookmark in self.shell.prefs['bookmarks']:
                 path = self.shell.prefs['bookmarks'][bookmark]
             else:
-                raise ValueError("No such bookmark %s" % bookmark)
+                raise ValueError(f"No such bookmark {bookmark}")
 
         # More cleanup
-        path = re.sub('%s+' % self._path_separator, self._path_separator, path)
+        path = re.sub(f'{self._path_separator}+', self._path_separator, path)
         if len(path) > 1:
             path = path.rstrip(self._path_separator)
-        self.shell.log.debug("Looking for path '%s'" % path)
+        self.shell.log.debug(f"Looking for path '{path}'")
 
 
         # Absolute path - make relative and pass on to root node

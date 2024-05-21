@@ -17,7 +17,9 @@ under the License.
 '''
 
 import os
-import configshell_fb as configshell
+
+import configshell
+
 
 class MySystemRoot(configshell.node.ConfigNode):
     def __init__(self, shell):
@@ -166,7 +168,7 @@ class Users(configshell.node.ConfigNode):
 
 def main():
     shell = configshell.shell.ConfigShell('~/.myshell')
-    root_node = MySystemRoot(shell)
+    MySystemRoot(shell)
     shell.run_interactive()
 
 if __name__ == "__main__":

@@ -6,8 +6,6 @@ A Python library for building configuration shells
 configshell-fb is a Python library that provides a framework
 for building simple but nice CLI-based applications.
 
-This runs with Python 2 and 2to3 is run by setup.py to run on Python 3.
-
 configshell-fb development
 --------------------------
 configshell-fb is licensed under the Apache 2.0 license. Contributions are welcome.
