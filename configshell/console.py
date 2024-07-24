@@ -15,17 +15,18 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-from fcntl import ioctl
 import re
 import struct
 import sys
-from termios import TIOCGWINSZ, TCSADRAIN, tcsetattr, tcgetattr
 import textwrap
 import tty
+from fcntl import ioctl
+from termios import TCSADRAIN, TIOCGWINSZ, tcgetattr, tcsetattr
 
 from .prefs import Prefs
 
-class Console(object):
+
+class Console:
     '''
     Implements various utility methods providing a console UI support toolkit,
     most notably an epytext-to-console text renderer using ANSI escape
@@ -35,7 +36,7 @@ class Console(object):
     _escape = '\033['
     _ansi_format = _escape + '%dm%s'
     _ansi_reset = _escape + '0m'
-    _re_ansi_seq = re.compile('(\033\[..?m)')
+    _re_ansi_seq = re.compile('(\033\\[..?m)')
 
     _ansi_styles = {'bold':      1,
                     'underline': 4,
@@ -88,8 +89,8 @@ class Console(object):
             tcsetattr(self._stdin, TCSADRAIN, attributes)
         if reply_terminator is not None:
             reply = reply[:-len(reply_terminator)]
-            reply = reply.replace(self._escape, '').split(';')
-            return reply
+            return reply.replace(self._escape, '').split(';')
+        return None
 
     def get_width(self):
         '''
@@ -100,11 +101,10 @@ class Console(object):
             winsize = struct.pack("HHHH", 0, 0, 0, 0)
             winsize = ioctl(self._stdout.fileno(), TIOCGWINSZ, winsize)
             width = struct.unpack("HHHH", winsize)[1]
-        except IOError:
+        except OSError:
             width = self._max_width
         else:
-            if width > self._max_width:
-                width = self._max_width
+            width = min(width, self._max_width)
 
         return width
 
@@ -166,7 +166,7 @@ class Console(object):
             if text[-index] == '\n':
                 clean_text = text[:-index]
                 if index != 1:
-                    clean_text += text[-index+1:]
+                    clean_text += text[-index + 1:]
                 break
         else:
             clean_text = text
@@ -194,9 +194,7 @@ class Console(object):
                 break
         text = text[i:]
         text = textwrap.dedent(text)
-        text = '\n' * i + text
-
-        return text
+        return '\n' * i + text
 
     def render_text(self, text, fgcolor=None, bgcolor=None, styles=None,
                     open_end=False, todefault=False):
@@ -218,9 +216,8 @@ class Console(object):
         @type todefault: bool
         '''
         if self.prefs['color_mode'] and self._stdout.isatty():
-            if fgcolor is None:
-                if self.prefs['color_default']:
-                    fgcolor = self.prefs['color_default']
+            if fgcolor is None and self.prefs['color_default']:
+                fgcolor = self.prefs['color_default']
             if fgcolor is not None:
                 text = self._ansi_format % (self._ansi_fgcolors[fgcolor], text)
             if bgcolor is not None:
@@ -265,21 +262,20 @@ class Console(object):
         '''
         right = self.get_width()
         if splitchars:
-            chunks = re.split(r'( +|\n|[^ \n%s]*[%s])' %
-                              (re.escape(splitchars), re.escape(splitchars)),
+            chunks = re.split(rf'( +|\n|[^ \n{re.escape(splitchars)}]*[{re.escape(splitchars)}])',
                               text.expandtabs())
         else:
             chunks = re.split(r'( +|\n)', text.expandtabs())
-        result = [' '*(indent-startindex)]
+        result = [' ' * (indent - startindex)]
         charindex = max(indent, startindex)
         current_style = ''
-        for chunknum, chunk in enumerate(chunks):
-            chunk_groups = re.split(self._re_ansi_seq, chunk)
+        for chunk in chunks:
+            chunk_groups = self._re_ansi_seq.split(chunk)
             chunk_text = ''
             next_style = current_style
 
             for group in chunk_groups:
-                if re.match(self._re_ansi_seq, group) is None:
+                if self._re_ansi_seq.match(group) is None:
                     chunk_text += group
                 else:
                     next_style += group
@@ -289,9 +285,9 @@ class Console(object):
                or chunk == '\n':
                 result[-1] = result[-1].rstrip()
                 result.append(self.render_text(
-                    '\n' + ' '*indent + current_style, open_end=True))
+                    '\n' + ' ' * indent + current_style, open_end=True))
                 charindex = indent
-                if chunk[:1] not in ('\n', ' '):
+                if chunk[:1] not in {'\n', ' '}:
                     result.append(chunk)
                     charindex += chunk_len
             else:
@@ -300,4 +296,4 @@ class Console(object):
 
             current_style = next_style.split(self._ansi_reset)[-1]
 
-        return ''.join(result).rstrip()+'\n'
+        return ''.join(result).rstrip() + '\n'

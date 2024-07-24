@@ -15,11 +15,12 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import os
 import fcntl
 import pickle
+from pathlib import Path
 
-class Prefs(object):
+
+class Prefs:
     '''
     This is a preferences backend object used to:
         - Hold the ConfigShell preferences
@@ -74,10 +75,7 @@ class Prefs(object):
         @param key: The preferences dictionnary key to check.
         @type key: any valid dict key
         '''
-        if key in self._prefs:
-            return True
-        else:
-            return False
+        return key in self._prefs
 
     def __delitem__(self, key):
         '''
@@ -129,12 +127,10 @@ class Prefs(object):
             filename = self.filename
 
         if filename is not None:
-            fsock = open(filename, 'wb')
-            fcntl.lockf(fsock, fcntl.LOCK_UN)
-            try:
+            path = Path(filename)
+            with path.open('wb') as fsock:
+                fcntl.lockf(fsock, fcntl.LOCK_UN)
                 pickle.dump(self._prefs, fsock, 2)
-            finally:
-                fsock.close()
 
     def load(self, filename=None):
         '''
@@ -144,10 +140,8 @@ class Prefs(object):
         if filename is None:
             filename = self.filename
 
-        if filename is not None and os.path.exists(filename):
-            fsock = open(filename, 'rb')
-            fcntl.lockf(fsock, fcntl.LOCK_SH)
-            try:
-                self._prefs = pickle.load(fsock)
-            finally:
-                fsock.close()
+        if filename is not None and Path(filename).exists():
+            path = Path(filename)
+            with path.open('rb') as fsock:
+                fcntl.lockf(fsock, fcntl.LOCK_SH)
+                self._prefs = pickle.load(fsock)  # noqa S301 TODO

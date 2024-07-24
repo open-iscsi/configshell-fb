@@ -15,18 +15,17 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-if __name__ == 'configshell-fb':
-    from warnings import warn
-    warn("'configshell' package name for configshell-fb is deprecated, please"
-         + " instead import 'configshell_fb'", UserWarning, stacklevel=2)
-
 from .console import Console
 from .log import Log
 from .node import ConfigNode, ExecutionError
 from .prefs import Prefs
 from .shell import ConfigShell
 
-__version__ = '1.1.30'
-__url__ = 'http://github.com/open-iscsi/configshell-fb'
-__description__ = 'A framework to implement simple but nice CLIs.'
-__license__ = 'Apache 2.0'
+__all__ = [
+    'Console',
+    'Log',
+    'ConfigNode',
+    'ExecutionError',
+    'Prefs',
+    'ConfigShell',
+]

@@ -16,14 +16,15 @@ under the License.
 '''
 
 import inspect
-import os
 import time
 import traceback
+from pathlib import Path
 
 from .console import Console
 from .prefs import Prefs
 
-class Log(object):
+
+class Log:
     '''
     Implements a file and console logger using python's logging facility.
     Log levels are, in raising criticality:
@@ -86,12 +87,7 @@ class Log(object):
                    date_fields[3], date_fields[4], date_fields[5])
 
         if self.prefs['logfile']:
-            path =  os.path.expanduser(self.prefs['logfile'])
-            handle = open(path, 'a')
-            try:
-                handle.write("[%s] %s %s\n" % (level, date, msg))
-            finally:
-                handle.close()
+            Path(self.prefs['logfile']).write_text(f"[{level}] {date} {msg}\n")
 
     def _log(self, level, msg):
         '''
@@ -110,7 +106,7 @@ class Log(object):
             if self.prefs["color_mode"]:
                 msg = self.con.render_text(msg, self.colors[level])
             else:
-                msg = "%s: %s" % (level.capitalize(), msg)
+                msg = f"{level.capitalize()}: {msg}"
             error = False
             if self.levels.index(level) <= self.levels.index('error'):
                 error = True
@@ -136,7 +132,7 @@ class Log(object):
         '''
         trace = traceback.format_exc().rstrip()
         if msg:
-            trace += '\n%s' % msg
+            trace += f'\n{msg}'
         self._log('error', trace)
 
     def verbose(self, msg):
