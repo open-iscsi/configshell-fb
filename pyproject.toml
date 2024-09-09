@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = ["hatchling", "hatch-vcs"]
 
 [project]
-name = "configshell"
+name = "configshell-fb"
 description = "A framework to implement simple but nice CLIs."
 readme = "README.md"
 license = "Apache-2.0"
