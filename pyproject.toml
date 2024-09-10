@@ -34,7 +34,10 @@ Homepage = "http://github.com/open-iscsi/configshell-fb"
 source = "vcs"
 
 [tool.hatch.build.targets.wheel]
-packages = ["configshell"]
+packages = [
+    "configshell",
+    "configshell_fb.py"
+]
 
 [tool.hatch.envs.default]
 dependencies = [
