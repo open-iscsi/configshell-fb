@@ -98,3 +98,5 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # Possible hardcoded password assigned to: "current_token"
 "configshell/shell" = ["S105"]
+# Required for pre-commit. Examples could be improved though.
+"examples/*" = ["S"]
