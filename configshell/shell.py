@@ -405,8 +405,7 @@ class ConfigShell:
         for index in range(len(pparams)):
             if index < len(cmd_params):
                 current_parameters[cmd_params[index]] = pparams[index]
-        for key, value in kparams.items():
-            current_parameters[key] = value
+        current_parameters.update(kparams)
         self._completion_help_topic = command
         completion_method = target.get_completion_method(command)
         self.log.debug(f"Command {command} accepts parameters {cmd_params}.")
@@ -547,8 +546,7 @@ class ConfigShell:
         current_parameters = {}
         for index in range(len(pparams)):
             current_parameters[cmd_params[index]] = pparams[index]
-        for key, value in kparams.items():
-            current_parameters[key] = value
+        current_parameters.update(kparams)
         completion_method = target.get_completion_method(command)
         if completion_method:
             completions = completion_method(
