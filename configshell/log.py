@@ -87,7 +87,8 @@ class Log:
                    date_fields[3], date_fields[4], date_fields[5])
 
         if self.prefs['logfile']:
-            Path(self.prefs['logfile']).write_text(f"[{level}] {date} {msg}\n")
+            with Path(self.prefs['logfile']).open(mode="a") as f:
+                f.write(f"[{level}] {date} {msg}\n")
 
     def _log(self, level, msg):
         '''
