@@ -1243,10 +1243,8 @@ class ConfigNode:
             if not self.shell.prefs['bookmarks']:
                 bookmarks += "No bookmarks yet.\n"
             else:
-                for (bookmark, path) \
-                        in self.shell.prefs['bookmarks'].items():
-                    if len(bookmark) == 1:
-                        bookmark += '\0'
+                for (_bookmark, path) in self.shell.prefs['bookmarks'].items():
+                    bookmark = _bookmark if len(_bookmark) != 1 else _bookmark + '\0'
                     underline = ''.ljust(len(bookmark), '-')
                     bookmarks += f"{bookmark}\n{underline}\n{path}\n\n"
             self.shell.con.epy_write(bookmarks)

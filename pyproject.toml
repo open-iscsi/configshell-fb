@@ -88,6 +88,8 @@ ignore = [
     "B904",    # raise-without-from-inside-except
     "PLR09",   # Too many branches/statements/arguments
     "S105",    # Possible hardcoded password assigned
+    "S605",    # TODO Starting a process with a shell
+    "S607",    # TODO Starting a process with a partial executable path
     "RET505",  # Unnecessary `else` after `return` statement
     "PLW2901", # TODO `for` loop variable overwritten by assignment target
     "UP031",   # TODO Use format specifiers instead of percent format
