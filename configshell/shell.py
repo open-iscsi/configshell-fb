@@ -128,8 +128,7 @@ class ConfigShell:
         parameter = kparam | pparam
         parameters = OneOrMore(parameter)
         bookmark = Regex('@([A-Za-z0-9:_.]|-)+')
-        pathstd = Regex(r'([A-Za-z0-9:_.\[\]]|-)*' + '/' + r'([A-Za-z0-9:_.\[\]/]|-)*') \
-                | '..' | '.'
+        pathstd = Regex(r'([A-Za-z0-9:_.\[\]]|-)*' + '/' + r'([A-Za-z0-9:_.\[\]/]|-)*') | '..' | '.'
         path = locatedExpr(bookmark | pathstd | '*')('path')
         parser = Optional(path) + Optional(command) + Optional(parameters)
         self._parser = parser
@@ -142,14 +141,30 @@ class ConfigShell:
         self.log = log.Log()
 
         if preferences_dir is not None:
-            preferences_dir_path = Path(preferences_dir)
+            try:
+                preferences_dir_path = Path(preferences_dir).expanduser()
+            except RuntimeError as e:
+                self.log.error(
+                    f"Could not determine home directory for preferences '{preferences_dir}': {e}",
+                )
+                preferences_dir = None
+
             if not preferences_dir_path.exists():
-                preferences_dir_path.mkdir(parents=True)
-            self._prefs_file = preferences_dir_path / 'prefs.bin'
-            self.prefs = prefs.Prefs(str(self._prefs_file))
-            self._cmd_history = preferences_dir_path / '/history.txt'
-            self._save_history = True
-            cmd_history_path = self._cmd_history
+                try:
+                    preferences_dir_path.mkdir(parents=True, exist_ok=True)
+                except OSError as e:
+                    self.log.error(
+                        f'Failed to create preferences directory {preferences_dir_path}: {e}',
+                    )
+                    preferences_dir = None
+
+            if preferences_dir:
+                self._prefs_file = preferences_dir_path / 'prefs.bin'
+                self.prefs = prefs.Prefs(str(self._prefs_file))
+                self._cmd_history = preferences_dir_path / 'history.txt'
+                self._save_history = True
+                cmd_history_path = self._cmd_history
+
             if not cmd_history_path.is_file():
                 try:
                     with cmd_history_path.open('w'):
@@ -159,16 +174,19 @@ class ConfigShell:
                                      f"command history will not be saved.")
                     self._save_history = False
 
-            if self._cmd_history.is_file() and tty:
-                try:
-                    readline.read_history_file(self._cmd_history)
-                except OSError:
-                    self.log.warning(f"Cannot read command history file {self._cmd_history}.")
+                if self._cmd_history.is_file() and tty and self._save_history:
+                    try:
+                        readline.read_history_file(str(self._cmd_history))
+                    except (OSError, FileNotFoundError) as e:
+                        self.log.warning(
+                            f'Cannot read command history file {self._cmd_history}: {e}',
+                        )
 
-            if self.prefs['logfile'] is None:
-                self.prefs['logfile'] = preferences_dir + '/' + 'log.txt'
+                if self.prefs['logfile'] is None:
+                    log_file_path = preferences_dir_path / 'log.txt'
+                    self.prefs['logfile'] = str(log_file_path)
 
-            self.prefs.autosave = True
+                self.prefs.autosave = True
 
         else:
             self.prefs = prefs.Prefs()
@@ -176,8 +194,8 @@ class ConfigShell:
 
         try:
             self.prefs.load()
-        except OSError:
-            self.log.warning(f"Could not load preferences file {self._prefs_file}.")
+        except (OSError, FileNotFoundError):
+            self.log.warning(f'Could not load preferences file {self._prefs_file}.')
 
         for pref, value in self.default_prefs.items():
             if pref not in self.prefs:
@@ -283,9 +301,11 @@ class ConfigShell:
 
         # No identified path yet on the command line, this might be it
         if not path:
-            path_completions = [child.name + '/'
-                                for child in self._current_node.children
-                                if child.name.startswith(text)]
+            path_completions = [
+                child.name + '/'
+                for child in self._current_node.children
+                if child.name.startswith(text)
+            ]
             if not text:
                 path_completions.append('/')
                 if len(self._current_node.children) > 1:
@@ -835,10 +855,16 @@ class ConfigShell:
         @param exit_on_error: If True, stops the run if an error occurs
         @type exit_on_error: bool
         '''
+        script_file_path = None
         try:
-            with Path(script_path).open() as script_fd:
+            script_file_path = Path(script_path).expanduser()
+            with script_file_path.open() as script_fd:
                 self.run_stdin(script_fd, exit_on_error)
+        except FileNotFoundError as e:
+            self.log.error(f'Script file not found: {script_file_path or script_path}')
+            raise FileNotFoundError(e) from e
         except OSError as e:
+            self.log.error(f'Error accessing script file {script_file_path or script_path}: {e}')
             raise OSError(e)
 
     def run_stdin(self, file_descriptor=sys.stdin, exit_on_error=True):
