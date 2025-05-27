@@ -8,17 +8,14 @@ upstream_package_name: configshell-fb
 # In Fedora, Python packages are prefixed with 'python-'
 downstream_package_name: python-configshell-fb
 
-# Use Python's build system to create the source archive
+# Use hatch to create the source archive
 actions:
   create-archive:
-    - python -m build --sdist
+    - hatch build -t sdist
     - bash -c "ls -1t ./dist/*.tar.gz | head -n 1"
 
 srpm_build_deps:
-  - python-build
-  - python-hatchling
-  - python-hatch-vcs
-  - python-wheel
+  - hatch
 
 jobs:
   # Test PRs in COPR
