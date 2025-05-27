@@ -39,7 +39,7 @@ rm -rf %{pypi_name}.egg-info
 
 %install
 %pyproject_install
-%pyproject_save_files configshell configshell_fb.py
+%pyproject_save_files configshell configshell_fb
 
 %files -n python3-%{pypi_name} -f %{pyproject_files}
 %license COPYING
