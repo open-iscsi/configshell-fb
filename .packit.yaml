@@ -15,7 +15,10 @@ actions:
     - bash -c "ls -1t ./dist/*.tar.gz | head -n 1"
 
 srpm_build_deps:
-  - hatch
+  - python3-devel
+  - python3-pip
+  - python3-hatchling
+  - python3-hatch-vcs
 
 jobs:
   # Test PRs in COPR
