@@ -48,5 +48,4 @@ rm -rf %{upstream_name}.egg-info
 %doc README.md
 
 %changelog
-* Thu May 23 2024 Packit <packit> - 1.1.29-1
-- Initial package for Fedora
+%autochangelog
