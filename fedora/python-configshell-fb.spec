@@ -3,7 +3,7 @@
 
 Name:           python-%{pkg_name}
 Version:        1.1.29
-Release:        1%{?dist}
+Release:        %autorelease
 Summary:        A framework to implement simple but nice CLIs
 # Note: This is the fb version of configshell
 
