@@ -18,9 +18,13 @@ BuildRequires:  hatch
 BuildRequires:  python3-hatchling
 BuildRequires:  python3-hatch-vcs
 
-%description
+%global _description %{expand:
 configshell-fb is a Python library that provides a framework to implement simple
 but nice CLI-based applications.
+}
+
+%description
+%{_description}
 
 %package -n python3-%{pkg_name}
 Summary:        %{summary}
@@ -29,8 +33,7 @@ Summary:        %{summary}
 Requires:       python3-pyparsing >= 2.4.7
 
 %description -n python3-%{pkg_name}
-configshell-fb is a Python library that provides a framework to implement simple
-but nice CLI-based applications.
+%{_description}
 
 %prep
 %autosetup -n %{upstream_name}-%{version}
