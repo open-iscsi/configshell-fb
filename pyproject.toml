@@ -36,7 +36,7 @@ source = "vcs"
 [tool.hatch.build.targets.wheel]
 packages = [
     "configshell",
-    "configshell_fb.py"
+    "configshell_fb"
 ]
 
 [tool.hatch.envs.default]
