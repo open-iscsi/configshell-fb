@@ -163,16 +163,15 @@ class ConfigShell:
                 self.prefs = prefs.Prefs(str(self._prefs_file))
                 self._cmd_history = preferences_dir_path / 'history.txt'
                 self._save_history = True
-                cmd_history_path = self._cmd_history
 
-            if not cmd_history_path.is_file():
-                try:
-                    with cmd_history_path.open('w'):
-                        pass
-                except OSError:
-                    self.log.warning(f"Cannot create history file {self._cmd_history}, "
-                                     f"command history will not be saved.")
-                    self._save_history = False
+                if not self._cmd_history.is_file():
+                    try:
+                        with self._cmd_history.open('w'):
+                            pass
+                    except OSError:
+                        self.log.warning(f"Cannot create history file {self._cmd_history}, "
+                                         f"command history will not be saved.")
+                        self._save_history = False
 
                 if self._cmd_history.is_file() and tty and self._save_history:
                     try:
@@ -186,7 +185,7 @@ class ConfigShell:
                     log_file_path = preferences_dir_path / 'log.txt'
                     self.prefs['logfile'] = str(log_file_path)
 
-                self.prefs.autosave = True
+            self.prefs.autosave = True
 
         else:
             self.prefs = prefs.Prefs()
@@ -204,7 +203,6 @@ class ConfigShell:
         self.con = console.Console()
 
     # Private methods
-
     def _display_completions(self, substitution, matches, max_length):  # noqa: ARG002 TODO
         '''
         Display the completions. Invoked by readline.
