@@ -22,10 +22,10 @@ from .prefs import Prefs
 from .shell import ConfigShell
 
 __all__ = [
-    'Console',
-    'Log',
     'ConfigNode',
-    'ExecutionError',
-    'Prefs',
     'ConfigShell',
+    'Console',
+    'ExecutionError',
+    'Log',
+    'Prefs',
 ]
