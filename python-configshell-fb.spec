@@ -37,6 +37,7 @@ Requires:       python3-pyparsing >= 2.4.7
 
 %prep
 %autosetup -n %{upstream_name}-%{version}
+ln -sf configshell configshell_fb
 rm -rf %{upstream_name}.egg-info
 
 %build
