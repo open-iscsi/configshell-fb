@@ -1683,7 +1683,7 @@ class ConfigNode:
         else:
             params = []
             for p_name, p_def in self._configuration_groups[group].items():
-                (p_type, p_description, p_writable) = p_def
+                (_p_type, _p_description, p_writable) = p_def
                 if writable is not None and p_writable != writable:
                     continue
                 params.append(p_name)
