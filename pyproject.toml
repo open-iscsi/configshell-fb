@@ -33,7 +33,7 @@ source = "vcs"
 [tool.hatch.build.targets.wheel]
 packages = [
     "configshell",
-    "configshell_fb"
+    "configshell_fb",  # deprecated alias of configshell
 ]
 
 [tool.hatch.envs.default]
