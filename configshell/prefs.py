@@ -32,6 +32,7 @@ class Prefs:
     _prefs = {}
     filename = None
     autosave = False
+    max_saved_path_history = 10
     __borg_state = {}
 
     def __init__(self, filename=None):
@@ -130,7 +131,18 @@ class Prefs:
             path = Path(filename)
             with path.open('wb') as fsock:
                 fcntl.lockf(fsock, fcntl.LOCK_UN)
-                pickle.dump(self._prefs, fsock, 2)
+                pickle.dump(self._saved_prefs(), fsock, 2)
+
+    def _saved_prefs(self):
+        data = dict(self._prefs)
+        history = data.get('path_history')
+        if history:
+            drop = max(len(history) - self.max_saved_path_history, 0)
+            data['path_history'] = history[drop:]
+            index = data.get('path_history_index')
+            if index is not None:
+                data['path_history_index'] = max(index - drop, 0)
+        return data
 
     def load(self, filename=None):
         '''
