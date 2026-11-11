@@ -15,8 +15,10 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import fcntl
+import os
 import pickle
+import stat
+import tempfile
 from pathlib import Path
 
 
@@ -127,10 +129,22 @@ class Prefs:
             filename = self.filename
 
         if filename is not None:
-            path = Path(filename)
-            with path.open('wb') as fsock:
-                fcntl.lockf(fsock, fcntl.LOCK_UN)
-                pickle.dump(self._prefs, fsock, 2)
+            path = Path(filename).resolve()
+            try:
+                mode = stat.S_IMODE(path.stat().st_mode)
+            except FileNotFoundError:
+                mode = 0o644
+            fd, tmpname = tempfile.mkstemp(dir=path.parent, prefix=f'.{path.name}.')
+            tmp = Path(tmpname)
+            try:
+                with os.fdopen(fd, 'wb') as fsock:
+                    os.fchmod(fsock.fileno(), mode)
+                    pickle.dump(self._prefs, fsock, 2)
+                    fsock.flush()
+                    os.fsync(fsock.fileno())
+                tmp.replace(path)
+            finally:
+                tmp.unlink(missing_ok=True)
 
     def load(self, filename=None):
         '''
@@ -143,5 +157,4 @@ class Prefs:
         if filename is not None and Path(filename).exists():
             path = Path(filename)
             with path.open('rb') as fsock:
-                fcntl.lockf(fsock, fcntl.LOCK_SH)
                 self._prefs = pickle.load(fsock)  # noqa S301 TODO
