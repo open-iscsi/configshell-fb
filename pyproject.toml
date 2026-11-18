@@ -24,11 +24,8 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[project.license-files]
-paths = ["COPYING"]
-
 [project.urls]
-Homepage = "http://github.com/open-iscsi/configshell-fb"
+Homepage = "https://github.com/open-iscsi/configshell-fb"
 
 [tool.hatch.version]
 source = "vcs"
@@ -36,7 +33,7 @@ source = "vcs"
 [tool.hatch.build.targets.wheel]
 packages = [
     "configshell",
-    "configshell_fb"
+    "configshell_fb",  # deprecated alias of configshell
 ]
 
 [tool.hatch.envs.default]

@@ -16,7 +16,9 @@ under the License.
 '''
 
 import fcntl
+import os
 import pickle
+import tempfile
 from pathlib import Path
 
 
@@ -128,9 +130,16 @@ class Prefs:
 
         if filename is not None:
             path = Path(filename)
-            with path.open('wb') as fsock:
-                fcntl.lockf(fsock, fcntl.LOCK_UN)
-                pickle.dump(self._prefs, fsock, 2)
+            # Write a temporary file and rename it over the old one, so that
+            # concurrent readers never see a truncated or partial file.
+            fd, tmp_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+            try:
+                with os.fdopen(fd, 'wb') as fsock:
+                    pickle.dump(self._prefs, fsock, 2)
+                Path(tmp_name).replace(path)
+            except BaseException:
+                Path(tmp_name).unlink(missing_ok=True)
+                raise
 
     def load(self, filename=None):
         '''
