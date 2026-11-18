@@ -25,7 +25,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "http://github.com/open-iscsi/configshell-fb"
+Homepage = "https://github.com/open-iscsi/configshell-fb"
 
 [tool.hatch.version]
 source = "vcs"
