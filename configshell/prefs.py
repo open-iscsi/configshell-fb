@@ -36,6 +36,7 @@ def _create_tempfile(path, mode):
     @rtype: (int, Path)
     '''
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    # try to find a free filename, in case one already exists
     for _ in range(100):
         tmp = path.with_name(f'.{path.name}.{secrets.token_hex(4)}')
         with suppress(FileExistsError):
