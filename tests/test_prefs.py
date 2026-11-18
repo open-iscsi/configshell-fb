@@ -45,6 +45,25 @@ class PrefsSaveTests(unittest.TestCase):
                 self.skipTest('The temporary filesystem does not support POSIX ACLs')
             raise
 
+    def test_save_syncs_parent_after_rename(self):
+        synced = []
+        fsync = os.fsync
+
+        def record_sync(fd):
+            synced.append(os.fstat(fd))
+            if stat.S_ISDIR(synced[-1].st_mode):
+                self.assertTrue(self.path.is_file())
+            else:
+                self.assertFalse(self.path.exists())
+            fsync(fd)
+
+        with patch.object(os, 'fsync', side_effect=record_sync):
+            self.prefs.save()
+
+        file_stat, dir_stat = synced
+        self.assertTrue(os.path.samestat(file_stat, self.path.stat()))
+        self.assertTrue(os.path.samestat(dir_stat, self.path.parent.stat()))
+
     def test_save_preserves_existing_access_acl(self):
         self.path.touch()
         self.set_acl(self.path, ACCESS_ACL)

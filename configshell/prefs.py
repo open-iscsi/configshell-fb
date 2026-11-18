@@ -203,6 +203,13 @@ class Prefs:
                 tmp.unlink(missing_ok=True)
                 raise
 
+            # Persist the directory entry created by the rename.
+            dir_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
+
     def load(self, filename=None):
         '''
         Loads the preferences from file. Use either the supplied filename,
