@@ -15,9 +15,61 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
-import fcntl
+import errno
+import os
 import pickle
+import secrets
+import stat
+from contextlib import suppress
 from pathlib import Path
+
+_ACCESS_ACL = 'system.posix_acl_access'
+
+
+def _create_tempfile(path, mode):
+    '''
+    Creates an empty temporary file in the same directory as path.
+    @param path: The file the temporary file will later replace.
+    @type path: Path
+    @param mode: The creation mode passed to os.open().
+    @return: The open file descriptor and the temporary file's path.
+    @rtype: (int, Path)
+    '''
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    # try to find a free filename, in case one already exists
+    for _ in range(100):
+        tmp = path.with_name(f'.{path.name}.{secrets.token_hex(4)}')
+        with suppress(FileExistsError):
+            return os.open(tmp, flags, mode), tmp
+    raise FileExistsError(f'Could not create a temporary file next to {path}')
+
+
+def _get_access_acl(fd):
+    if not hasattr(os, 'getxattr'):
+        return None
+    try:
+        return os.getxattr(fd, _ACCESS_ACL)
+    except OSError as error:
+        if error.errno not in (errno.ENODATA, errno.ENOTSUP):
+            raise
+        return None
+
+
+def _restore_permissions(fd, original, acl):
+    # Keep the original ownership where permitted.
+    with suppress(PermissionError):
+        os.fchown(fd, original.st_uid, original.st_gid)
+
+    # Clear any inherited ACL before widening permissions.
+    if acl is not None:
+        os.setxattr(fd, _ACCESS_ACL, acl)
+    elif hasattr(os, 'removexattr'):
+        try:
+            os.removexattr(fd, _ACCESS_ACL)
+        except OSError as error:
+            if error.errno not in (errno.ENODATA, errno.ENOTSUP):
+                raise
+    os.fchmod(fd, stat.S_IMODE(original.st_mode))
 
 
 class Prefs:
@@ -127,10 +179,36 @@ class Prefs:
             filename = self.filename
 
         if filename is not None:
-            path = Path(filename)
-            with path.open('wb') as fsock:
-                fcntl.lockf(fsock, fcntl.LOCK_UN)
-                pickle.dump(self._prefs, fsock, 2)
+            path = Path(filename).resolve()
+            try:
+                original_fd = os.open(path, os.O_WRONLY | os.O_NONBLOCK)
+            except FileNotFoundError:
+                current = None
+            else:
+                try:
+                    current = os.fstat(original_fd)
+                    acl = _get_access_acl(original_fd)
+                finally:
+                    os.close(original_fd)
+            fd, tmp = _create_tempfile(path, 0o666 if current is None else 0o600)
+            try:
+                with os.fdopen(fd, 'wb') as fsock:
+                    pickle.dump(self._prefs, fsock, 2)
+                    fsock.flush()
+                    if current is not None:
+                        _restore_permissions(fd, current, acl)
+                    os.fsync(fd)
+                tmp.replace(path)
+            except BaseException:
+                tmp.unlink(missing_ok=True)
+                raise
+
+            # Persist the directory entry created by the rename.
+            dir_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
 
     def load(self, filename=None):
         '''
@@ -143,5 +221,4 @@ class Prefs:
         if filename is not None and Path(filename).exists():
             path = Path(filename)
             with path.open('rb') as fsock:
-                fcntl.lockf(fsock, fcntl.LOCK_SH)
                 self._prefs = pickle.load(fsock)  # noqa S301 TODO

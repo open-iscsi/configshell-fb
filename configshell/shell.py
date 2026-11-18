@@ -16,6 +16,7 @@ under the License.
 '''
 
 import os
+import pickle
 import signal
 import sys
 from contextlib import suppress
@@ -193,7 +194,9 @@ class ConfigShell:
 
         try:
             self.prefs.load()
-        except (OSError, FileNotFoundError):
+        except (OSError, EOFError, pickle.UnpicklingError):
+            # A truncated or damaged file, e.g. one left behind by an older
+            # version that wrote it in place: start with the default prefs.
             self.log.warning(f'Could not load preferences file {self._prefs_file}.')
 
         for pref, value in self.default_prefs.items():
@@ -557,7 +560,7 @@ class ConfigShell:
         cmd_params = target.get_command_signature(command)[0]
         self.log.debug(f"Command {command} accepts parameters {cmd_params}.")
 
-        (keyword, sep, current_value) = text.partition('=')
+        (keyword, _sep, current_value) = text.partition('=')
         self.log.debug(f"Completing '{current_value}' for kparam {keyword}")
 
         self._current_parameter = keyword
