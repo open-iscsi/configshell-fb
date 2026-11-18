@@ -15,11 +15,60 @@ License for the specific language governing permissions and limitations
 under the License.
 '''
 
+import errno
 import os
 import pickle
+import secrets
 import stat
-import tempfile
+from contextlib import suppress
 from pathlib import Path
+
+_ACCESS_ACL = 'system.posix_acl_access'
+
+
+def _create_tempfile(path, mode):
+    '''
+    Creates an empty temporary file in the same directory as path.
+    @param path: The file the temporary file will later replace.
+    @type path: Path
+    @param mode: The creation mode passed to os.open().
+    @return: The open file descriptor and the temporary file's path.
+    @rtype: (int, Path)
+    '''
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    for _ in range(100):
+        tmp = path.with_name(f'.{path.name}.{secrets.token_hex(4)}')
+        with suppress(FileExistsError):
+            return os.open(tmp, flags, mode), tmp
+    raise FileExistsError(f'Could not create a temporary file next to {path}')
+
+
+def _get_access_acl(fd):
+    if not hasattr(os, 'getxattr'):
+        return None
+    try:
+        return os.getxattr(fd, _ACCESS_ACL)
+    except OSError as error:
+        if error.errno not in (errno.ENODATA, errno.ENOTSUP):
+            raise
+        return None
+
+
+def _restore_permissions(fd, original, acl):
+    # Keep the original ownership where permitted.
+    with suppress(PermissionError):
+        os.fchown(fd, original.st_uid, original.st_gid)
+
+    # Clear any inherited ACL before widening permissions.
+    if acl is not None:
+        os.setxattr(fd, _ACCESS_ACL, acl)
+    elif hasattr(os, 'removexattr'):
+        try:
+            os.removexattr(fd, _ACCESS_ACL)
+        except OSError as error:
+            if error.errno not in (errno.ENODATA, errno.ENOTSUP):
+                raise
+    os.fchmod(fd, stat.S_IMODE(original.st_mode))
 
 
 class Prefs:
@@ -131,20 +180,27 @@ class Prefs:
         if filename is not None:
             path = Path(filename).resolve()
             try:
-                mode = stat.S_IMODE(path.stat().st_mode)
+                original_fd = os.open(path, os.O_WRONLY | os.O_NONBLOCK)
             except FileNotFoundError:
-                mode = 0o644
-            fd, tmpname = tempfile.mkstemp(dir=path.parent, prefix=f'.{path.name}.')
-            tmp = Path(tmpname)
+                current = None
+            else:
+                try:
+                    current = os.fstat(original_fd)
+                    acl = _get_access_acl(original_fd)
+                finally:
+                    os.close(original_fd)
+            fd, tmp = _create_tempfile(path, 0o666 if current is None else 0o600)
             try:
                 with os.fdopen(fd, 'wb') as fsock:
-                    os.fchmod(fsock.fileno(), mode)
                     pickle.dump(self._prefs, fsock, 2)
                     fsock.flush()
-                    os.fsync(fsock.fileno())
+                    if current is not None:
+                        _restore_permissions(fd, current, acl)
+                    os.fsync(fd)
                 tmp.replace(path)
-            finally:
+            except BaseException:
                 tmp.unlink(missing_ok=True)
+                raise
 
     def load(self, filename=None):
         '''
